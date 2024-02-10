@@ -37,11 +37,16 @@ import api.hbm.entity.IRadarDetectable;
 import api.hbm.entity.IRadarDetectableNT;
 import api.hbm.entity.IRadarDetectableNT.RadarScanParams;
 import api.hbm.entity.RadarEntry;
+import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
+import li.cil.oc.api.machine.Arguments;
+import li.cil.oc.api.machine.Callback;
+import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -60,7 +65,8 @@ import net.minecraft.world.WorldServer;
  * Now with SmЯt™ lag-free entity detection! (patent pending)
  * @author hbm
  */
-public class TileEntityMachineRadarNT extends TileEntityMachineBase implements IEnergyUser, IGUIProvider, IConfigurableMachine, IControlReceiver {
+@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")})
+public class TileEntityMachineRadarNT extends TileEntityMachineBase implements IEnergyUser, IGUIProvider, IConfigurableMachine, IControlReceiver, SimpleComponent {
 
 	public boolean scanMissiles = true;
 	public boolean scanShells = true;
@@ -127,7 +133,7 @@ public class TileEntityMachineRadarNT extends TileEntityMachineBase implements I
 	public String getName() {
 		return "container.radar";
 	}
-	
+
 	public int getRange() {
 		return radarRange;
 	}
@@ -237,7 +243,7 @@ public class TileEntityMachineRadarNT extends TileEntityMachineBase implements I
 				new DirPos(xCoord, yCoord, zCoord - 1, Library.NEG_Z),
 		};
 	}
-	
+
 	@Override
 	public void serialize(ByteBuf buf) {
 		super.serialize(buf);
@@ -591,5 +597,29 @@ public class TileEntityMachineRadarNT extends TileEntityMachineBase implements I
 			if(x.getX() instanceof EntityPlayer && x.getZ().scanPlayers) return new RadarEntry((EntityPlayer) x.getX());
 			return null;
 		});
+	}
+
+	//holy shittttt
+	@Override
+	public String getComponentName() {
+		return "ntm_radar";
+	}
+
+	@Callback(direct = true)
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] getEntityCount(Context context, Arguments args) {
+		return new Object[] {entries.size()};
+	}
+
+	@Callback(direct = true)
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] getEntityAtIndex(Context context, Arguments args) {
+		RadarEntry e = entries.get(args.checkInteger(0));
+		boolean fancy = args.checkBoolean(1);
+		return new Object[] {
+				//if fancy display enabled and blipLevel == 11 then return "player", else return "missile".
+				//if fancy display not enabled then return blipLevel directly.
+			e.posX, e.posY, e.posZ, e.unlocalizedName, fancy ? e.blipLevel == 11 ? "Player" : "Missile" : e.blipLevel
+		};
 	}
 }

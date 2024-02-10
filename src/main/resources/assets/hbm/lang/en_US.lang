@@ -325,6 +325,45 @@ book.starter.page18=vær is just a guy who has been trapped in the grey void fea
 #book.rbmk.title16=Meltdown
 #book.rbmk.page16=§4§lAvoid.
 
+book.oc.cover=A beginners$guide to$Opencomputers
+book.oc.title1=Introduction
+book.oc.page1=Hello, and welcome to Opencomputers! Chances are, if you have this book, then you have Opencomputers, or OC installed. OC is a mod that can directly interact with machines, allowing for automation or management of machines. This guide will explain all methods that can be used, as well as some examples of outputs/code.
+book.oc.title2=Quick Terminology
+book.oc.page2a=§lOCLua§r - Refers to the subtype of Lua 5.3 used by Opencomputers.
+book.oc.page2b=§lCallback§r - General term for a function that can be called on a component that isn't the computer.
+book.oc.title3=OCLua
+book.oc.page3=OC primarily uses Lua 5.3, which will be referred to as OCLua for simplicity. If you're looking to code for OC, then it's worth either knowing Lua syntax or looking up basic Lua functions. OCLua differs from normal Lua 5.3 largely, though most basic functions persist through the versions. It is worth noting that all relevant code snippets will be using OpenOS functions, so be careful when running on systems other than OpenOS.
+book.oc.title4=Syntax
+book.oc.page4a=Machines can be interacted with in various different ways. The most common is to create a 'component proxy' and make callbacks on that. This can be done with the following code snippet:
+book.oc.page4b=§4component = require("component")§r
+book.oc.page4c=§4proxy = component.proxy("a")§r
+book.oc.page4d=The string inside the 'proxy()' function is the component address to create the proxy for. This can be obtained by either hardcoding, or grabbing it from a list of components. The latter can be done with the following code snippet:
+book.oc.page4e=§4component = require("component")§r
+book.oc.page4f=§4component.getPrimary("name")§r
+book.oc.page4g=String "name" is the name of the component; 'getPrimary()' returns a proxy automatically.
+book.oc.title5=RBMK Columns
+book.oc.page5a=Most RBMK columns have OC integration. RBMK columns that are directly next to each other act as both cables and components, so linking each and every column to a cable is not necessary.
+book.oc.page5b=§lBasic Functions§r (present in every column):
+book.oc.page5c=§lgetHeat()§r - Returns the current heat of the column.
+book.oc.page5d=§lgetInfo()§r - Returns all fields possible for that column.
+book.oc.page5e=§lRBMK Fuel Rod§r ("rbmk_fuel_rod"):
+book.oc.page5f=§lgetSlowFlux()§r - Returns the amount of slow flux coming into the rod. (Float)
+book.oc.page5g=§lgetFastFlux()§r - Returns the amount of fast flux coming into the rod. (Float)
+book.oc.page5h=§lgetSkinHeat()§r - Returns the skin heat of the rod. ("N/A" if no rod, Float otherwise)
+book.oc.page5i=§lgetCoreHeat()§r - Returns the core heat of the rod. ("N/A" if no rod, Float otherwise)
+book.oc.page5j=§lgetDepletion()§r - Returns the depletion (or rather enrichment) of the rod. ("N/A" if no rod, Float otherwise)
+book.oc.page5k=§lgetXenonPoison()§r - Returns the xenon poison of the rod. ("N/A" if no rod, Float otherwise)
+book.oc.page5l=§lgetType()§r - Returns the unlocalized name of the rod. ("N/A" if no rod, String otherwise)
+book.oc.page5m=§lgetModerated()§r - Returns true if the column is a moderated column. (Boolean)
+book.oc.page5n=§lgetCoordinates()§r - Returns the coordinates of the column. (x; int, y; int, z; int)
+book.oc.title6=RBMK Columns
+book.oc.page6=§lRBMK Control Rod§r ("rbmk_control_rod"):
+book.oc.title7=b
+book.oc.page7=b
+book.oc.title8=c
+book.oc.page8=c
+
+
 book_lore.author=By %s
 book_lore.test.name=this book doesn't work...
 book_lore.test.author=me i trolled you hehe :3c

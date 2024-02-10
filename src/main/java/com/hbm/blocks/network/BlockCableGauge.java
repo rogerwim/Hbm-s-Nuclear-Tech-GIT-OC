@@ -7,6 +7,7 @@ import java.util.List;
 import com.hbm.blocks.IBlockMultiPass;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.blocks.ITooltipProvider;
+import com.hbm.handler.CompatHandler;
 import com.hbm.lib.RefStrings;
 import com.hbm.render.block.RenderBlockMultipass;
 import com.hbm.tileentity.INBTPacketReceiver;
@@ -14,8 +15,13 @@ import com.hbm.tileentity.network.TileEntityCableBaseNT;
 import com.hbm.util.BobMathUtil;
 import com.hbm.util.I18nUtil;
 
+import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import li.cil.oc.api.machine.Arguments;
+import li.cil.oc.api.machine.Callback;
+import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.material.Material;
@@ -98,7 +104,8 @@ public class BlockCableGauge extends BlockContainer implements IBlockMultiPass, 
 		return IBlockMultiPass.getRenderType();
 	}
 
-	public static class TileEntityCableGauge extends TileEntityCableBaseNT implements INBTPacketReceiver {
+	@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
+	public static class TileEntityCableGauge extends TileEntityCableBaseNT implements INBTPacketReceiver, SimpleComponent {
 
 		private BigInteger lastMeasurement = BigInteger.valueOf(10);
 		private long deltaTick = 0;
@@ -139,5 +146,17 @@ public class BlockCableGauge extends BlockContainer implements IBlockMultiPass, 
 			this.deltaTick = Math.max(nbt.getLong("deltaT"), 0);
 			this.deltaLastSecond = Math.max(nbt.getLong("deltaS"), 0);
 		}
+
+		@Override
+		public String getComponentName() {
+			return "power_gauge";
+		}
+
+		@Callback(direct = true)
+		@Optional.Method(modid = "OpenComputers")
+		public Object[] getTick(Context context, Arguments args) {
+			return new Object[] {this.deltaTick};
+		}
+
 	}
 }

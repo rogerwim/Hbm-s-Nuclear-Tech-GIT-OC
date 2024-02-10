@@ -53,7 +53,8 @@ public class ItemGuideBook extends Item implements IGUIProvider {
 		TEST("book.test.cover", 2F, statFacTest()),
 		RBMK("book.rbmk.cover", 1.5F, statFacRBMK()),
 		HADRON("book.error.cover", 1.5F, statFacHadron()),
-		STARTER("book.starter.cover", 1.5F, statFacStarter());
+		STARTER("book.starter.cover", 1.5F, statFacStarter()),
+		OC("book.oc.cover", 1.5F, statFacOC());
 		
 		public List<GuidePage> pages;
 		public float titleScale;
@@ -223,6 +224,55 @@ public class ItemGuideBook extends Item implements IGUIProvider {
 				.addText("book.starter.page18", 2F)
 				.addImage(new ResourceLocation(RefStrings.MODID + ":textures/gui/book/starter18.png"), 10, 69, 100, 100));
 		
+		return pages;
+	}
+
+	public static List<GuidePage> statFacOC() { //i hate everything
+
+		List<GuidePage> pages = new ArrayList();
+		for(int i = 1; i <= 8; i++) {
+			switch(i) {
+				case (4):
+					pages.add(new GuidePage().addTitle("book.oc.title4", 0x800000, 1F)
+							.addText("book.oc.page4a", 2F, 0, -1, 100)
+							.addText("book.oc.page4b", 3F, 0, 45, 100)
+							.addText("book.oc.page4c", 3F, 0, 50, 100)
+							.addText("book.oc.page4d", 2F, 0, 60, 100)
+							.addText("book.oc.page4e", 3F, 0, 100, 100)
+							.addText("book.oc.page4f", 3F, 0, 105, 100)
+							.addText("book.oc.page4g", 2F, 0, 115, 100)
+					);
+					break;
+				case (2):
+					pages.add(new GuidePage().addTitle("book.oc.title2", 0x800000, 1F)
+							.addText("book.oc.page2a", 2F, 0, -1, 100)
+							.addText("book.oc.page2b", 2F, 0, 25, 100)
+					);
+					break;
+				case(5):
+					pages.add(new GuidePage().addTitle("book.oc.title5", 0x800000, 1F)
+							.addText("book.oc.page5a", 3.5F, 0, -1, 100)
+							.addText("book.oc.page5b", 3.5F, 0, 20, 100)
+							.addText("book.oc.page5c", 3.5F, 0, 27, 100)
+							.addText("book.oc.page5d", 3.5F, 0, 31, 100)
+							.addText("book.oc.page5e", 3.5F, 0, 39, 100)
+							.addText("book.oc.page5f", 3.5F, 0, 46, 100)
+							.addText("book.oc.page5g", 3.5F, 0, 53, 100)
+							.addText("book.oc.page5h", 3.5F, 0, 60, 100)
+							.addText("book.oc.page5i", 3.5F, 0, 67, 100)
+							.addText("book.oc.page5j", 3.5F, 0, 74, 100)
+							.addText("book.oc.page5k", 3.5F, 0, 81, 100)
+							.addText("book.oc.page5l", 3.5F, 0, 88, 100)
+							.addText("book.oc.page5m", 3.5F, 0, 95, 100)
+							.addText("book.oc.page5n", 3.5F, 0, 102, 100)
+					);
+					break;
+				default:
+					pages.add(new GuidePage().addTitle("book.oc.title" + i, 0x800000, 1F).addText("book.oc.page" + i, 2F));
+					break;
+			}
+		}
+
 		return pages;
 	}
 	
