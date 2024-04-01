@@ -33,9 +33,14 @@ import com.hbm.util.fauxpointtwelve.DirPos;
 import api.hbm.energy.IEnergyUser;
 import api.hbm.fluid.IFluidStandardTransceiver;
 import api.hbm.tile.IInfoProviderEC;
+import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import li.cil.oc.api.machine.Arguments;
+import li.cil.oc.api.machine.Callback;
+import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -46,7 +51,8 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser, IFluidAcceptor, IFluidSource, IFluidStandardTransceiver, IGUIProvider, IInfoProviderEC {
+@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")})
+public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser, IFluidAcceptor, IFluidSource, IFluidStandardTransceiver, IGUIProvider, IInfoProviderEC, SimpleComponent {
 	
 	public long power;
 	public static final long maxPower = 10000000;
@@ -61,7 +67,7 @@ public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser
 	
 	@SideOnly(Side.CLIENT)
 	public int blanket;
-	
+
 	public float rotor;
 	public float lastRotor;
 	public boolean isOn;
@@ -659,4 +665,25 @@ public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser
 		data.setDouble("consumption", output * 10);
 		data.setDouble("outputmb", output);
 	}
+
+	@Override
+	public String getComponentName() {
+		return "ntm_fusion";
+	}
+
+	@Callback(direct = true)
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] getBlanket(Context context, Arguments args) {
+		return new Object[] {this.blanket};
+	}
+
+	@Callback(direct = true)
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] getBlanketDamage(Context context, Arguments args) {
+		if (slots[3] != null && (slots[3].getItem() instanceof ItemFusionShield)) {
+			return new Object[]{ItemFusionShield.getShieldDamage(slots[3]), ((ItemFusionShield)slots[3].getItem()).maxDamage};
+		}
+		return new Object[]{"N/A", "N/A"};
+	}
+
 }
