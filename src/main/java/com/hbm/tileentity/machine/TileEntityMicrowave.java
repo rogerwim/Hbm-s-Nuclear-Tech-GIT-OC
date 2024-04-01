@@ -219,7 +219,7 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 
 	@Override
 	public String getComponentName() {
-		return "microwave";
+		return "ntm_microwave";
 	}
 
 	@Callback(direct = true)

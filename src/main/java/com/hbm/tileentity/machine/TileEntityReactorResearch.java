@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.MobConfig;
+import com.hbm.handler.GameruleHandler;
 import com.hbm.handler.radiation.ChunkRadiationManager;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
@@ -142,7 +143,7 @@ public class TileEntityReactorResearch extends TileEntityMachineBase implements 
 					this.heat = 0;
 			}
 
-			if(this.heat > maxHeat) {
+			if(this.heat > maxHeat && !GameruleHandler.getResearchMeltdownDisabled(worldObj)) {
 				this.explode();
 			}
 

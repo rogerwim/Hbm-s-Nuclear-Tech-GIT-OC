@@ -8,6 +8,7 @@ import com.hbm.config.BombConfig;
 import com.hbm.entity.effect.EntityCloudFleijaRainbow;
 import com.hbm.entity.logic.EntityNukeExplosionMK3;
 import com.hbm.entity.logic.EntityNukeExplosionMK3.ATEntry;
+import com.hbm.handler.GameruleHandler;
 import com.hbm.handler.radiation.ChunkRadiationManager;
 import com.hbm.inventory.container.ContainerCore;
 import com.hbm.inventory.fluid.FluidType;
@@ -102,7 +103,7 @@ public class TileEntityCore extends TileEntityMachineBase implements IGUIProvide
 					}
 				}
 				
-				if(canExplode) {
+				if(canExplode && !GameruleHandler.getDFCMeltdownDisabled(worldObj)) {
 					
 					EntityNukeExplosionMK3 ex = new EntityNukeExplosionMK3(worldObj);
 					ex.posX = xCoord + 0.5;

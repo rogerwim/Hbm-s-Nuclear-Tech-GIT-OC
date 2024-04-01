@@ -10,6 +10,7 @@ import com.hbm.config.MobConfig;
 import com.hbm.entity.projectile.EntityZirnoxDebris;
 import com.hbm.entity.projectile.EntityZirnoxDebris.DebrisType;
 import com.hbm.explosion.ExplosionNukeGeneric;
+import com.hbm.handler.GameruleHandler;
 import com.hbm.handler.MultiblockHandlerXR;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.interfaces.IFluidAcceptor;
@@ -224,7 +225,7 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IF
 			//2(fill) + (x * fill%)
 			this.pressure = (this.carbonDioxide.getFill() * 2) + (int)((float)this.heat * ((float)this.carbonDioxide.getFill() / (float)this.carbonDioxide.getMaxFill()));
 
-			if(this.heat > 0 && this.heat < maxHeat) {
+			if(this.heat > 0 && (this.heat < maxHeat || GameruleHandler.getZIRNOXMeltdownDisabled(worldObj))) {
 				if(this.water.getFill() > 0 && this.carbonDioxide.getFill() > 0 && this.steam.getFill() < this.steam.getMaxFill()) {
 					generateSteam();
 					//(x * pressure) / 1,000,000
@@ -320,7 +321,7 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IF
 	}
 
 	private void checkIfMeltdown() {
-		if (this.pressure > maxPressure || this.heat > maxHeat) {
+		if ((this.pressure > maxPressure || this.heat > maxHeat) && !GameruleHandler.getZIRNOXMeltdownDisabled(worldObj)) {
 			meltdown();
 		}
 	}

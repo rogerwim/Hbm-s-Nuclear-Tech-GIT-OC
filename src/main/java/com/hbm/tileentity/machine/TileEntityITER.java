@@ -8,6 +8,7 @@ import com.hbm.blocks.machine.MachineITER;
 import com.hbm.explosion.ExplosionLarge;
 import com.hbm.explosion.ExplosionNT;
 import com.hbm.explosion.ExplosionNT.ExAttrib;
+import com.hbm.handler.GameruleHandler;
 import com.hbm.interfaces.IFluidAcceptor;
 import com.hbm.interfaces.IFluidSource;
 import com.hbm.inventory.container.ContainerITER;
@@ -113,7 +114,8 @@ public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser
 			
 			//explode either if there's plasma that is too hot or if the reactor is turned on but the magnets have no power
 			if(plasma.getFill() > 0 && (this.plasma.getTankType().temperature >= this.getShield() || (this.isOn && this.power < this.powerReq))) {
-				this.explode();
+				if (!GameruleHandler.getFusionMeltdownDisabled(worldObj))
+					this.explode();
 			}
 			
 			if(isOn && power >= powerReq) {

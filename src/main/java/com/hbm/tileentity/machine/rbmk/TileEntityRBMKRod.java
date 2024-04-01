@@ -4,6 +4,7 @@ import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.machine.rbmk.RBMKBase;
 import com.hbm.blocks.machine.rbmk.RBMKRod;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
+import com.hbm.handler.GameruleHandler;
 import com.hbm.handler.radiation.ChunkRadiationManager;
 import com.hbm.inventory.container.ContainerRBMKRod;
 import com.hbm.inventory.gui.GUIRBMKRod;
@@ -93,7 +94,7 @@ public class TileEntityRBMKRod extends TileEntityRBMKSlottedBase implements IRBM
 				
 				if(this.heat > this.maxHeat()) {
 					
-					if(RBMKDials.getMeltdownsDisabled(worldObj)) {
+					if(GameruleHandler.getRBMKMeltdownDisabled(worldObj)) {
 						ParticleUtil.spawnGasFlame(worldObj, xCoord + 0.5, yCoord + RBMKDials.getColumnHeight(worldObj) + 0.5, zCoord + 0.5, 0, 0.2, 0);
 					} else {
 						this.meltdown();

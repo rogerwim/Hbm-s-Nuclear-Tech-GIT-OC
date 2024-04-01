@@ -6,6 +6,7 @@ import java.util.Random;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.entity.projectile.EntityShrapnel;
+import com.hbm.handler.GameruleHandler;
 import com.hbm.handler.radiation.ChunkRadiationManager;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.container.ContainerWatz;
@@ -136,27 +137,29 @@ public class TileEntityWatz extends TileEntityMachineBase implements IFluidStand
 			
 			segments.get(segments.size() - 1).sendOutBottom();
 			
-			/* explode on mud overflow */
-			if(sharedTanks[2].getFill() > 0) {
-				for(int x = -3; x <= 3; x++) {
-					for(int y = 3; y < 6; y++) {
-						for(int z = -3; z <= 3; z++) {
-							worldObj.setBlock(xCoord + x, yCoord + y, zCoord + z, Blocks.air);
+			/* explode on mud overflow if meltdown not disabled */
+			if(!GameruleHandler.getWatzMeltdownDisabled(worldObj)) {
+				if (sharedTanks[2].getFill() > 0) {
+					for (int x = -3; x <= 3; x++) {
+						for (int y = 3; y < 6; y++) {
+							for (int z = -3; z <= 3; z++) {
+								worldObj.setBlock(xCoord + x, yCoord + y, zCoord + z, Blocks.air);
+							}
 						}
 					}
+					this.disassemble();
+
+					ChunkRadiationManager.proxy.incrementRad(worldObj, xCoord, yCoord + 1, zCoord, 1_000F);
+
+					worldObj.playSoundEffect(xCoord + 0.5, yCoord + 2, zCoord + 0.5, "hbm:block.rbmk_explosion", 50.0F, 1.0F);
+					NBTTagCompound data = new NBTTagCompound();
+					data.setString("type", "rbmkmush");
+					data.setFloat("scale", 5);
+					PacketDispatcher.wrapper.sendToAllAround(new AuxParticlePacketNT(data, xCoord + 0.5, yCoord + 2, zCoord + 0.5), new TargetPoint(worldObj.provider.dimensionId, xCoord, yCoord, zCoord, 250));
+					MainRegistry.proxy.effectNT(data);
+
+					return;
 				}
-				this.disassemble();
-				
-				ChunkRadiationManager.proxy.incrementRad(worldObj, xCoord, yCoord + 1, zCoord, 1_000F);
-				
-				worldObj.playSoundEffect(xCoord + 0.5, yCoord + 2, zCoord + 0.5, "hbm:block.rbmk_explosion", 50.0F, 1.0F);
-				NBTTagCompound data = new NBTTagCompound();
-				data.setString("type", "rbmkmush");
-				data.setFloat("scale", 5);
-				PacketDispatcher.wrapper.sendToAllAround(new AuxParticlePacketNT(data, xCoord + 0.5, yCoord + 2, zCoord + 0.5), new TargetPoint(worldObj.provider.dimensionId, xCoord, yCoord, zCoord, 250));
-				MainRegistry.proxy.effectNT(data);
-				
-				return;
 			}
 		}
 	}

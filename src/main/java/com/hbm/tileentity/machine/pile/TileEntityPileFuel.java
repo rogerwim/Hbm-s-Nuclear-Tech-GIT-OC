@@ -2,6 +2,7 @@ package com.hbm.tileentity.machine.pile;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.GeneralConfig;
+import com.hbm.handler.GameruleHandler;
 import com.hbm.main.MainRegistry;
 import com.hbm.packet.AuxParticlePacketNT;
 import com.hbm.packet.PacketDispatcher;
@@ -28,7 +29,7 @@ public class TileEntityPileFuel extends TileEntityPileBase implements IPileNeutr
 			checkRedstone(react());
 			transmute();
 			
-			if(this.heat >= this.maxHeat) {
+			if(this.heat >= this.maxHeat && !GameruleHandler.getPileMeltdownDisabled(worldObj)) {
 				worldObj.newExplosion(null, xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, 4, true, true);
 				worldObj.setBlock(xCoord, yCoord, zCoord, ModBlocks.gas_radon_dense);
 			}

@@ -931,7 +931,8 @@ public class MainRegistry {
 	@EventHandler
 	public void serverStart(FMLServerStartingEvent event) {
 		World world = event.getServer().getEntityWorld();
-		RBMKDials.createDials(world);
+		RBMKDials.createDials(world); // RBMK Gamerules (`dial`)
+		GameruleHandler.createDials(world); // Meltdown Gamerules (`M_`)
 		event.registerServerCommand(new CommandReloadRecipes());
 		event.registerServerCommand(new CommandDebugChunkLoad());
 		event.registerServerCommand(new CommandSatellites());
