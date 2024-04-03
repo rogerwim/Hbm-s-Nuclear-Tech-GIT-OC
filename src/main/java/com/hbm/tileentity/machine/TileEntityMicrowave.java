@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import com.hbm.handler.CompatHandler;
 import com.hbm.inventory.container.ContainerMicrowave;
 import com.hbm.inventory.gui.GUIMicrowave;
 import com.hbm.lib.Library;
@@ -11,8 +12,8 @@ import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
-import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -24,8 +25,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 
+import java.util.Objects;
+
 @Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityMicrowave extends TileEntityMachineBase implements IEnergyUser, IGUIProvider, SimpleComponent {
+public class TileEntityMicrowave extends TileEntityMachineBase implements IEnergyUser, IGUIProvider, SimpleComponent, ManagedPeripheral {
 	
 	public long power;
 	public static final long maxPower = 50000;
@@ -219,13 +222,7 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 
 	@Override
 	public String getComponentName() {
-		return "ntm_microwave";
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] test(Context context, Arguments args) {
-		return new Object[] {"This is a testing device for everything OC."};
+		return CompatHandler.Compats.MICROWAVE.name;
 	}
 
 	@Override
@@ -237,5 +234,19 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 	@SideOnly(Side.CLIENT)
 	public GuiScreen provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		return new GUIMicrowave(player.inventory, this);
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public String[] methods() {
+		return new String[] {"test"};
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		if(Objects.equals(method, "test"))
+			return new Object[] {"This is a testing device for everything OC."};
+		throw new NoSuchMethodException();
 	}
 }

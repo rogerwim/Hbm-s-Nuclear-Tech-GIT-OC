@@ -1249,6 +1249,8 @@ public class ModBlocks {
 	public static Block pink_slab;
 	public static Block pink_double_slab;
 	public static Block pink_stairs;
+
+	public static Block oc_connector;
 	
 	public static Material materialGas = new MaterialGas();
 	
@@ -2409,6 +2411,8 @@ public class ModBlocks {
 		pink_slab = new BlockPinkSlab(false, Material.wood).setBlockName("pink_slab").setStepSound(Block.soundTypeWood).setCreativeTab(null).setBlockTextureName(RefStrings.MODID + ":pink_planks");
 		pink_double_slab = new BlockPinkSlab(true, Material.wood).setBlockName("pink_double_slab").setStepSound(Block.soundTypeWood).setCreativeTab(null).setBlockTextureName(RefStrings.MODID + ":pink_planks");
 		pink_stairs = new BlockGenericStairs(pink_planks, 0).setBlockName("pink_stairs").setStepSound(Block.soundTypeWood).setCreativeTab(null).setBlockTextureName(RefStrings.MODID + ":pink_planks");
+
+		oc_connector = new OCConnector(Material.iron).setBlockName("oc_connector").setCreativeTab(MainRegistry.machineTab).setBlockTextureName(RefStrings.MODID + ":oc_connector");
 	}
 
 	private static void registerBlock() {
@@ -3061,6 +3065,8 @@ public class ModBlocks {
 		GameRegistry.registerBlock(anvil_dnt, ItemBlockBase.class, anvil_dnt.getUnlocalizedName());
 		GameRegistry.registerBlock(anvil_osmiridium, ItemBlockBase.class, anvil_osmiridium.getUnlocalizedName());
 		GameRegistry.registerBlock(anvil_murky, ItemBlockBase.class, anvil_murky.getUnlocalizedName());
+
+		GameRegistry.registerBlock(oc_connector, oc_connector.getUnlocalizedName());
 		
 		GameRegistry.registerBlock(press_preheater, press_preheater.getUnlocalizedName());
 		GameRegistry.registerBlock(machine_press, machine_press.getUnlocalizedName());
