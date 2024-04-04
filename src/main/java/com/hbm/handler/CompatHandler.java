@@ -117,9 +117,9 @@ public class CompatHandler {
 
         public final Class<?> Class;
         public final String name;
-        public final Object[] Methods;
+        public final String[] Methods;
 
-        Compats(Class<?> object, String Compat_name, Object[] methods) {
+        Compats(Class<?> object, String Compat_name, String[] methods) {
             Class = object;
             name = Compat_name;
             Methods = methods; //grr

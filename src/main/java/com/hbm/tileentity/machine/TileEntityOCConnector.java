@@ -20,6 +20,7 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 
 	boolean connected = false;
 	String connectedEnum;
+	TileEntity connectedTE;
 	int time = 0;
 
 	@Override
@@ -42,14 +43,22 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 							tile = worldObj.getTileEntity(xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ);
 						}
 						Class<?> tileClass = tile.getClass();
+						boolean valid = false;
 						for (CompatHandler.Compats c : CompatHandler.Compats.VALID_COMPATS) {
 							if (c.Class.equals(tileClass) || c.Class.equals(tileClass.getSuperclass())) {
 								if (!c.Class.equals(TileEntityOCConnector.class)) { //fuck you
+									valid = true;
 									connected = true;
 									connectedEnum = c.name();
+									connectedTE = tile;
 									break;
 								}
 							}
+						}
+						if(!valid) {
+							connected = false;
+							connectedEnum = null;
+							connectedTE = null;
 						}
 					}
 				}
@@ -66,11 +75,18 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 
 	@Override
 	public String[] methods() {
-		return new String[0];
+		if(connected)
+			return CompatHandler.Compats.valueOf(connectedEnum).Methods;
+		else
+			return null;
 	}
 
 	@Override
 	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
-		return new Object[0];
+		if(connected)
+			return new Object[] {true};
+		else
+			return null;
+
 	}
 }
