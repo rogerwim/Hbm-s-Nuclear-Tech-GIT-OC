@@ -27,6 +27,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -38,8 +39,11 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityMachineTurbine extends TileEntityLoadedBase implements ISidedInventory, IFluidContainer, IEnergyGenerator, IFluidStandardTransceiver, IGUIProvider, SimpleComponent, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityMachineTurbine extends TileEntityLoadedBase implements ISidedInventory, IFluidContainer, IEnergyGenerator, IFluidStandardTransceiver, IGUIProvider, SimpleComponent, ManagedPeripheral, IInfoProviderEC {
 
 	private ItemStack slots[];
 
@@ -341,32 +345,45 @@ public class TileEntityMachineTurbine extends TileEntityLoadedBase implements IS
 
 	@Override
 	public String getComponentName() {
-		return "ntm_turbine";
+		return CompatHandler.Compats.SMALL_TURBINE.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFluid(Context context, Arguments args) {
-		return new Object[] {tanks[0].getFill(), tanks[1].getFill(), tanks[1].getFill(), tanks[1].getMaxFill()};
+	public String[] methods() {
+		return new String[] {
+				"getFluid",
+				"getType",
+				"setType",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getType(Context context, Arguments args) {
-		return CompatHandler.steamTypeToInt(tanks[1].getTankType());
+	public static String[] callbacks() {
+		return new String[] {
+				"getFluid",
+				"getType",
+				"setType",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true, limit = 4)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] setType(Context context, Arguments args) {
-		tanks[0].setTankType(CompatHandler.intToSteamType(args.checkInteger(0)));
-		return new Object[] {true};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {tanks[0].getFill(), tanks[0].getMaxFill(), tanks[1].getFill(), tanks[1].getMaxFill(), CompatHandler.steamTypeToInt(tanks[0].getTankType())};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getFluid"):
+				return new Object[] {tanks[0].getFill(), tanks[1].getFill(), tanks[1].getFill(), tanks[1].getMaxFill()};
+			case ("getType"):
+				return CompatHandler.steamTypeToInt(tanks[1].getTankType());
+			case ("setType"):
+				tanks[0].setTankType(CompatHandler.intToSteamType(args.checkInteger(0)));
+				return new Object[] {true};
+			case ("getInfo"):
+				return new Object[] {tanks[0].getFill(), tanks[0].getMaxFill(), tanks[1].getFill(), tanks[1].getMaxFill(), CompatHandler.steamTypeToInt(tanks[0].getTankType())};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

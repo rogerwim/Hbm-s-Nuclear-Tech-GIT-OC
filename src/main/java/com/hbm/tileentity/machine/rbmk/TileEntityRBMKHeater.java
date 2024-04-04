@@ -3,6 +3,7 @@ package com.hbm.tileentity.machine.rbmk;
 import api.hbm.fluid.IFluidStandardTransceiver;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
+import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IFluidAcceptor;
 import com.hbm.interfaces.IFluidSource;
 import com.hbm.inventory.container.ContainerRBMKHeater;
@@ -22,6 +23,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,9 +33,13 @@ import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")})
-public class TileEntityRBMKHeater extends TileEntityRBMKSlottedBase implements IFluidAcceptor, IFluidSource, IFluidStandardTransceiver, SimpleComponent {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityRBMKHeater extends TileEntityRBMKSlottedBase implements IFluidAcceptor, IFluidSource, IFluidStandardTransceiver, SimpleComponent, ManagedPeripheral {
 
 	public FluidTank feed;
 	public FluidTank steam;
@@ -275,63 +281,66 @@ public class TileEntityRBMKHeater extends TileEntityRBMKSlottedBase implements I
 	}
 
 	//opencomputers stuff
-
 	@Override
 	public String getComponentName() {
-		return "rbmk_heater";
+		return CompatHandler.Compats.RBMK_HEATER.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getHeat(Context context, Arguments args) {
-		return new Object[] {heat};
+	public String[] methods() {
+		return new String[] {
+				"getHeat",
+				"getFill",
+				"getFillMax",
+				"getExport",
+				"getExportMax",
+				"getFillType",
+				"getExportType",
+				"getInfo",
+				"getCoordinates"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFill(Context context, Arguments args) {
-		return new Object[] {feed.getFill()};
+	public static String[] callbacks() {
+		return new String[] {
+				"getHeat",
+				"getFill",
+				"getFillMax",
+				"getExport",
+				"getExportMax",
+				"getFillType",
+				"getExportType",
+				"getInfo",
+				"getCoordinates"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFillMax(Context context, Arguments args) {
-		return new Object[] {feed.getMaxFill()};
-	}
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getExport(Context context, Arguments args) {
-		return new Object[] {steam.getFill()};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getExportMax(Context context, Arguments args) {
-		return new Object[] {steam.getMaxFill()};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFillType(Context context, Arguments args) {
-		return new Object[] {feed.getTankType().getName()};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getExportType(Context context, Arguments args) {
-		return new Object[] {steam.getTankType().getName()};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {heat, feed.getFill(), feed.getMaxFill(), steam.getFill(), steam.getMaxFill(), feed.getTankType().getName(), steam.getTankType().getName(), xCoord, yCoord, zCoord};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCoordinates(Context context, Arguments args) {
-		return new Object[] {xCoord, yCoord, zCoord};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getHeat"):
+				return new Object[]{heat};
+			case ("getFill"):
+				return new Object[] {feed.getFill()};
+			case ("getFillMax"):
+				return new Object[] {feed.getMaxFill()};
+			case ("getExport"):
+				return new Object[] {steam.getFill()};
+			case ("getExportMax"):
+				return new Object[] {steam.getMaxFill()};
+			case ("getFillType"):
+				return new Object[] {feed.getTankType().getName()};
+			case ("getExportType"):
+				return new Object[] {steam.getTankType().getName()};
+			case ("getInfo"):
+				return new Object[] {heat, feed.getFill(), feed.getMaxFill(), steam.getFill(), steam.getMaxFill(), feed.getTankType().getName(), steam.getTankType().getName(), xCoord, yCoord, zCoord};
+			case ("getCoordinates"):
+				return new Object[] {xCoord, yCoord, zCoord};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

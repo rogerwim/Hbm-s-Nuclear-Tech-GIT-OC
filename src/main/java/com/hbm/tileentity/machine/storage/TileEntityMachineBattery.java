@@ -5,6 +5,7 @@ import api.hbm.tile.IInfoProviderEC;
 
 import com.hbm.blocks.machine.MachineBattery;
 import com.hbm.config.GeneralConfig;
+import com.hbm.handler.CompatHandler;
 import com.hbm.inventory.container.ContainerMachineBattery;
 import com.hbm.inventory.gui.GUIMachineBattery;
 import com.hbm.lib.Library;
@@ -19,6 +20,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -35,8 +37,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")})
-public class TileEntityMachineBattery extends TileEntityMachineBase implements IEnergyUser, IPersistentNBT, SimpleComponent, IGUIProvider, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityMachineBattery extends TileEntityMachineBase implements IEnergyUser, IPersistentNBT, SimpleComponent, ManagedPeripheral, IGUIProvider, IInfoProviderEC {
 	
 	public long[] log = new long[20];
 	public long delta = 0;
@@ -422,19 +427,35 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "ntm_energy_storage"; //ok if someone else can figure out how to do this that'd be nice (change the component name based on the type of storage block)
+		return CompatHandler.Compats.BATTERY.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getEnergyInfo(Context context, Arguments args) {
-		return new Object[] {getPower(), getMaxPower()};
+	public String[] methods() {
+		return new String[] {
+				"getEnergyInfo",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {getPower(), getMaxPower()};
+	public static String[] callbacks() {
+		return new String[] {
+				"getEnergyInfo",
+				"getInfo"
+		};
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getEnergyInfo"): //stupid, but for compatibility reasons
+			case ("getInfo"):
+				return new Object[] {getPower(), getMaxPower()};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IFluidAcceptor;
 import com.hbm.inventory.container.ContainerCoreInjector;
 import com.hbm.inventory.fluid.FluidType;
@@ -16,6 +17,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -26,8 +28,11 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityCoreInjector extends TileEntityMachineBase implements IFluidAcceptor, IFluidStandardReceiver, SimpleComponent, IGUIProvider {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityCoreInjector extends TileEntityMachineBase implements IFluidAcceptor, IFluidStandardReceiver, SimpleComponent, ManagedPeripheral, IGUIProvider {
 	
 	public FluidTank[] tanks;
 	public static final int range = 15;
@@ -197,26 +202,42 @@ public class TileEntityCoreInjector extends TileEntityMachineBase implements IFl
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "dfc_injector";
+		return CompatHandler.Compats.DFC_INJECTOR.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFuel(Context context, Arguments args) {
-		return new Object[] {tanks[0].getFill(), tanks[1].getFill()};
+	public String[] methods() {
+		return new String[] {
+				"getFuel",
+				"getTypes",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getTypes(Context context, Arguments args) {
-		return new Object[] {tanks[0].getTankType().getName(), tanks[1].getTankType().getName()};
+	public static String[] callbacks() {
+		return new String[] {
+				"getFuel",
+				"getTypes",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {tanks[0].getFill(), tanks[0].getTankType().getName(), tanks[1].getFill(), tanks[1].getTankType().getName()};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getFuel"):
+				return new Object[] {tanks[0].getFill(), tanks[1].getFill()};
+			case ("getTypes"):
+				return new Object[] {tanks[0].getTankType().getName(), tanks[1].getTankType().getName()};
+			case ("getInfo"):
+				return new Object[] {tanks[0].getFill(), tanks[0].getTankType().getName(), tanks[1].getFill(), tanks[1].getTankType().getName()};
+		}
+		throw new NoSuchMethodException();
 	}
+
 
 	@Override
 	public Container provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) {

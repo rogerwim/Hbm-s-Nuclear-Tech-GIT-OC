@@ -1,18 +1,22 @@
 package com.hbm.tileentity.machine.rbmk;
 
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
+import com.hbm.handler.CompatHandler;
 import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
-import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public abstract class TileEntityRBMKControl extends TileEntityRBMKSlottedBase implements SimpleComponent {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public abstract class TileEntityRBMKControl extends TileEntityRBMKSlottedBase implements SimpleComponent, ManagedPeripheral {
 
 	@SideOnly(Side.CLIENT)
 	public double lastLevel;
@@ -124,44 +128,53 @@ public abstract class TileEntityRBMKControl extends TileEntityRBMKSlottedBase im
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "rbmk_control_rod";
+		return CompatHandler.Compats.RBMK_CONTROL.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getLevel(Context context, Arguments args) {
-		return new Object[] {getMult() * 100};
+	public String[] methods() {
+		return new String[] {
+				"getLevel",
+				"getTargetLevel",
+				"getCoordinates",
+				"getHeat",
+				"getInfo",
+				"setLevel"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getTargetLevel(Context context, Arguments args) {
-		return new Object[] {targetLevel * 100};
+	public static String[] callbacks() {
+		return new String[] {
+				"getLevel",
+				"getTargetLevel",
+				"getCoordinates",
+				"getHeat",
+				"getInfo",
+				"setLevel"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCoordinates(Context context, Arguments args) {
-		return new Object[] {xCoord, yCoord, zCoord};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getHeat(Context context, Arguments args) {
-		return new Object[] {heat};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {heat, getMult() * 100, targetLevel * 100, xCoord, yCoord, zCoord};
-	}
-
-	@Callback(direct = true, limit = 4)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] setLevel(Context context, Arguments args) {
-		double newLevel = args.checkDouble(0)/100.0;
-		targetLevel = MathHelper.clamp_double(newLevel, 0, 1);
-		return new Object[] {};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch (method) {
+			case("getLevel"):
+				return new Object[] {getMult() * 100};
+			case("getTargetLevel"):
+				return new Object[] {targetLevel * 100};
+			case("getCoordinates"):
+				return new Object[] {xCoord, yCoord, zCoord};
+			case("getHeat"):
+				return new Object[] {heat};
+			case("getInfo"):
+				return new Object[] {heat, getMult() * 100, targetLevel * 100, xCoord, yCoord, zCoord};
+			case("setLevel"):
+				double newLevel = args.checkDouble(0)/100.0;
+				targetLevel = MathHelper.clamp_double(newLevel, 0, 1);
+				return new Object[] {};
+		}
+		throw new NoSuchMethodException();
 	}
 }

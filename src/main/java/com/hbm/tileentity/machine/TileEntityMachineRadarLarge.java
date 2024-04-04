@@ -2,12 +2,17 @@ package com.hbm.tileentity.machine;
 
 import java.io.IOException;
 
+import api.hbm.entity.RadarEntry;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
+import com.hbm.handler.CompatHandler;
 import com.hbm.lib.Library;
 import com.hbm.tileentity.IConfigurableMachine;
 import com.hbm.util.fauxpointtwelve.DirPos;
 
+import cpw.mods.fml.common.Optional;
+import li.cil.oc.api.machine.Arguments;
+import li.cil.oc.api.machine.Context;
 import net.minecraft.util.AxisAlignedBB;
 
 public class TileEntityMachineRadarLarge extends TileEntityMachineRadarNT {
@@ -59,5 +64,10 @@ public class TileEntityMachineRadarLarge extends TileEntityMachineRadarNT {
 		}
 		
 		return bb;
+	}
+
+	@Override
+	public String getComponentName() {
+		return CompatHandler.Compats.LARGE_RADAR.name;
 	}
 }

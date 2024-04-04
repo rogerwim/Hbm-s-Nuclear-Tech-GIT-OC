@@ -3,6 +3,7 @@ package com.hbm.tileentity.machine.rbmk;
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.machine.rbmk.RBMKBase;
 import com.hbm.extprop.HbmPlayerProps;
+import com.hbm.handler.CompatHandler;
 import com.hbm.handler.HbmKeybinds.EnumKeybind;
 import com.hbm.items.machine.ItemRBMKRod;
 import com.hbm.packet.NBTPacket;
@@ -15,6 +16,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -27,8 +29,11 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.List;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityCraneConsole extends TileEntity implements INBTPacketReceiver, SimpleComponent {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityCraneConsole extends TileEntity implements INBTPacketReceiver, SimpleComponent, ManagedPeripheral {
 	
 	public int centerX;
 	public int centerY;
@@ -338,74 +343,86 @@ public class TileEntityCraneConsole extends TileEntity implements INBTPacketRece
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "rbmk_crane";
+		return CompatHandler.Compats.RBMK_CRANE.name;
 	}
 
-	@Callback(direct = true, limit = 2) //yknow computers are more efficient than humans, lets give an incentive to use OC
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] move(Context context, Arguments args) {
-		if(setUpCrane) {
-			String direction = args.checkString(0);
-
-			switch(direction) {
-				case "up":
-					tiltFront = 30;
-					if(!worldObj.isRemote) posFront += speed;
-					break;
-				case "down":
-					tiltFront = -30;
-					if(!worldObj.isRemote) posFront -= speed;
-					break;
-				case "left":
-					tiltLeft = 30;
-					if(!worldObj.isRemote) posLeft += speed;
-					break;
-				case "right":
-					tiltLeft = -30;
-					if(!worldObj.isRemote) posLeft -= speed;
-					break;
-			}
-			
-			return new Object[] {};
-		}
-		return new Object[] {"Crane not found"};
+	public String[] methods() {
+		return new String[] {
+				"move",
+				"load",
+				"getDepletion",
+				"getXenonPoison",
+				"getCranePos"
+		};
 	}
-	
-	@Callback
+
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] load(Context context, Arguments args) {
-		if (setUpCrane) {
-			goesDown = true;
-			return new Object[] {};
-		}
-		return new Object[] {"Crane not found"};
+	public static String[] callbacks() {
+		return new String[] {
+				"move",
+				"load",
+				"getDepletion",
+				"getXenonPoison",
+				"getCranePos"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getDepletion(Context context, Arguments args) {
-		if(loadedItem != null && loadedItem.getItem() instanceof ItemRBMKRod) {
-			return new Object[] {ItemRBMKRod.getEnrichment(loadedItem)};
-		}
-		return new Object[] {"N/A"};
-	}
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception { //please don't fuck over how many times per tick the move can be called
+		switch(method) {
+			case ("move"):
+				if (setUpCrane) {
+					String direction = args.checkString(0);
 
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getXenonPoison(Context context, Arguments args) {
-		if(loadedItem != null && loadedItem.getItem() instanceof ItemRBMKRod) {
-			return new Object[] {ItemRBMKRod.getPoison(loadedItem)};
-		}
-		return new Object[] {"N/A"};
-	}
+					switch (direction) {
+						case "up":
+							tiltFront = 30;
+							if (!worldObj.isRemote) posFront += speed;
+							break;
+						case "down":
+							tiltFront = -30;
+							if (!worldObj.isRemote) posFront -= speed;
+							break;
+						case "left":
+							tiltLeft = 30;
+							if (!worldObj.isRemote) posLeft += speed;
+							break;
+						case "right":
+							tiltLeft = -30;
+							if (!worldObj.isRemote) posLeft -= speed;
+							break;
+					}
 
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers") //if this doesnt work im going to die
-	public Object[] getCranePos(Context context, Arguments args) {
-		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
-		ForgeDirection left = dir.getRotation(ForgeDirection.DOWN);
-		int x = (int)Math.floor(this.centerX - dir.offsetX * this.posFront - left.offsetX * this.posLeft + 0.5D);
-		int z = (int)Math.floor(this.centerZ - dir.offsetZ * this.posFront - left.offsetZ * this.posLeft + 0.5D);
-		return new Object[] {x, z};
+					return new Object[]{};
+				}
+				return new Object[]{"Crane not found"};
+			case ("load"):
+				if (setUpCrane) {
+					goesDown = true;
+					return new Object[]{};
+				}
+				return new Object[]{"Crane not found"};
+			case ("getDepletion"):
+				if (loadedItem != null && loadedItem.getItem() instanceof ItemRBMKRod) {
+					return new Object[]{ItemRBMKRod.getEnrichment(loadedItem)};
+				}
+				return new Object[]{"N/A"};
+			case ("getXenonPoison"):
+				if (loadedItem != null && loadedItem.getItem() instanceof ItemRBMKRod) {
+					return new Object[]{ItemRBMKRod.getPoison(loadedItem)};
+				}
+				return new Object[]{"N/A"};
+			case ("getCranePos"):
+				ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
+				ForgeDirection left = dir.getRotation(ForgeDirection.DOWN);
+				int x = (int) Math.floor(this.centerX - dir.offsetX * this.posFront - left.offsetX * this.posLeft + 0.5D);
+				int z = (int) Math.floor(this.centerZ - dir.offsetZ * this.posFront - left.offsetZ * this.posLeft + 0.5D);
+				return new Object[]{x, z};
+			// end switch
+		}
+		throw new NoSuchMethodException();
 	}
 }

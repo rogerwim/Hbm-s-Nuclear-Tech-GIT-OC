@@ -5,6 +5,7 @@ import com.hbm.blocks.BlockDummyable;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.explosion.vanillant.ExplosionVNT;
 import com.hbm.extprop.HbmPlayerProps;
+import com.hbm.handler.CompatHandler;
 import com.hbm.handler.MultiblockHandlerXR;
 import com.hbm.interfaces.IFluidAcceptor;
 import com.hbm.interfaces.IFluidContainer;
@@ -37,6 +38,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
@@ -53,8 +55,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")})
-public class TileEntityMachineFluidTank extends TileEntityMachineBase implements IFluidContainer, SimpleComponent, IFluidSource, IFluidAcceptor, IFluidStandardTransceiver, IPersistentNBT, IOverpressurable, IGUIProvider, IRepairable {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityMachineFluidTank extends TileEntityMachineBase implements IFluidContainer, SimpleComponent, ManagedPeripheral, IFluidSource, IFluidAcceptor, IFluidStandardTransceiver, IPersistentNBT, IOverpressurable, IGUIProvider, IRepairable {
 	
 	public FluidTank tank;
 	public short mode = 0;
@@ -481,30 +486,43 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 
 	@Override
 	public String getComponentName() {
-		return "ntm_fluid_tank";
+		return CompatHandler.Compats.TANK.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFluidStored(Context context, Arguments args) {
-		return new Object[] {tank.getFill()};
+	public String[] methods() {
+		return new String[] {
+				"getFluidStored",
+				"getMaxStored",
+				"getTypeStored",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getMaxStored(Context context, Arguments args) {
-		return new Object[] {tank.getMaxFill()};
+	public static String[] callbacks() {
+		return new String[] {
+				"getFluidStored",
+				"getMaxStored",
+				"getTypeStored",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getTypeStored(Context context, Arguments args) {
-		return new Object[] {tank.getTankType().getName()};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[]{tank.getFill(), tank.getMaxFill(), tank.getTankType().getName()};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getFluidStored"):
+				return new Object[] {tank.getFill()};
+			case ("getMaxStored"):
+				return new Object[] {tank.getMaxFill()};
+			case ("getTypeStored"):
+				return new Object[] {tank.getTankType().getName()};
+			case ("getInfo"):
+				return new Object[]{tank.getFill(), tank.getMaxFill(), tank.getTankType().getName()};
+		}
+		throw new NoSuchMethodException();
 	}
 }

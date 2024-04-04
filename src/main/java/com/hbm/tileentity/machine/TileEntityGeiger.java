@@ -3,6 +3,7 @@ package com.hbm.tileentity.machine;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.hbm.handler.CompatHandler;
 import com.hbm.handler.radiation.ChunkRadiationManager;
 import com.hbm.util.CompatEnergyControl;
 import com.hbm.util.ContaminationUtil;
@@ -12,12 +13,16 @@ import cpw.mods.fml.common.Optional;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityGeiger extends TileEntity implements SimpleComponent, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityGeiger extends TileEntity implements SimpleComponent, ManagedPeripheral, IInfoProviderEC {
 	
 	int timer = 0;
 	int ticker = 0;
@@ -68,15 +73,34 @@ public class TileEntityGeiger extends TileEntity implements SimpleComponent, IIn
 		int rads = (int)Math.ceil(ChunkRadiationManager.proxy.getRadiation(worldObj, xCoord, yCoord, zCoord));
 		return rads;
 	}
+
 	@Override
 	public String getComponentName() {
-		return "ntm_geiger";
+		return CompatHandler.Compats.GEIGER.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getRads(Context context, Arguments args) {
-		return new Object[] {check()};
+	public String[] methods() {
+		return new String[] {
+				"getRads"
+		};
+	}
+
+	@Optional.Method(modid = "OpenComputers")
+	public static String[] callbacks() {
+		return new String[] {
+				"getRads"
+		};
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		if ("getRads".equals(method)) {
+			return new Object[] {check()};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

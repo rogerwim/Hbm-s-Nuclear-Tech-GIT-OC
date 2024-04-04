@@ -1,6 +1,7 @@
 package com.hbm.tileentity.machine.rbmk;
 
 import api.hbm.fluid.IFluidStandardReceiver;
+import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IFluidAcceptor;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
@@ -11,6 +12,7 @@ import cpw.mods.fml.common.Optional;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
@@ -19,8 +21,11 @@ import net.minecraft.util.DamageSource;
 
 import java.util.List;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityRBMKCooler extends TileEntityRBMKBase implements IFluidAcceptor, IFluidStandardReceiver, SimpleComponent {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityRBMKCooler extends TileEntityRBMKBase implements IFluidAcceptor, IFluidStandardReceiver, SimpleComponent, ManagedPeripheral {
 
 	private FluidTank tank;
 	private int lastCooled;
@@ -144,11 +149,6 @@ public class TileEntityRBMKCooler extends TileEntityRBMKBase implements IFluidAc
 	}
 
 	//do some opencomputers stuff
-
-	public String getComponentName() {
-		return "rbmk_cooler";
-	}
-
 	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
 	public Object[] getHeat(Context context, Arguments args) {
@@ -177,5 +177,50 @@ public class TileEntityRBMKCooler extends TileEntityRBMKBase implements IFluidAc
 	@Optional.Method(modid = "OpenComputers")
 	public Object[] getInfo(Context context, Arguments args) {
 		return new Object[]{heat, tank.getFill(), tank.getMaxFill(), xCoord, yCoord, zCoord};
+	}
+	@Override
+	public String getComponentName() {
+		return CompatHandler.Compats.RBMK_COOLER.name;
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public String[] methods() {
+		return new String[] {
+				"getHeat",
+				"getCryo",
+				"getCryoMax",
+				"getCoordinates",
+				"getInfo"
+		};
+	}
+
+	@Optional.Method(modid = "OpenComputers")
+	public static String[] callbacks() {
+		return new String[] {
+				"getHeat",
+				"getCryo",
+				"getCryoMax",
+				"getCoordinates",
+				"getInfo"
+		};
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case("getHeat"):
+				return new Object[] {heat};
+			case("getCryo"):
+				return new Object[]{tank.getFill()};
+			case("getCryoMax"):
+				return new Object[]{tank.getMaxFill()};
+			case("getCoordinates"):
+				return new Object[] {xCoord, yCoord, zCoord};
+			case("getInfo"):
+				return new Object[]{heat, tank.getFill(), tank.getMaxFill(), xCoord, yCoord, zCoord};
+		}
+		throw new NoSuchMethodException();
 	}
 }

@@ -8,6 +8,7 @@ import com.hbm.blocks.machine.MachineITER;
 import com.hbm.explosion.ExplosionLarge;
 import com.hbm.explosion.ExplosionNT;
 import com.hbm.explosion.ExplosionNT.ExAttrib;
+import com.hbm.handler.CompatHandler;
 import com.hbm.handler.GameruleHandler;
 import com.hbm.interfaces.IFluidAcceptor;
 import com.hbm.interfaces.IFluidSource;
@@ -41,6 +42,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -52,8 +54,11 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")})
-public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser, IFluidAcceptor, IFluidSource, IFluidStandardTransceiver, IGUIProvider, IInfoProviderEC, SimpleComponent {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser, IFluidAcceptor, IFluidSource, IFluidStandardTransceiver, IGUIProvider, IInfoProviderEC, SimpleComponent, ManagedPeripheral {
 	
 	public long power;
 	public static final long maxPower = 10000000;
@@ -670,22 +675,39 @@ public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser
 
 	@Override
 	public String getComponentName() {
-		return "ntm_fusion";
+		return CompatHandler.Compats.ITER.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getBlanket(Context context, Arguments args) {
-		return new Object[] {this.blanket};
+	public String[] methods() {
+		return new String[] {
+				"getBlanket",
+				"getBlanketDamage"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getBlanketDamage(Context context, Arguments args) {
-		if (slots[3] != null && (slots[3].getItem() instanceof ItemFusionShield)) {
-			return new Object[]{ItemFusionShield.getShieldDamage(slots[3]), ((ItemFusionShield)slots[3].getItem()).maxDamage};
+	public static String[] callbacks() {
+		return new String[] {
+				"getBlanket",
+				"getBlanketDamage"
+		};
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getBlanket"):
+				return new Object[] {this.blanket};
+			case ("getBlanketDamage"):
+				if (slots[3] != null && (slots[3].getItem() instanceof ItemFusionShield)) {
+					return new Object[]{ItemFusionShield.getShieldDamage(slots[3]), ((ItemFusionShield)slots[3].getItem()).maxDamage};
+				}
+				return new Object[]{"N/A", "N/A"};
 		}
-		return new Object[]{"N/A", "N/A"};
+		throw new NoSuchMethodException();
 	}
 
 }

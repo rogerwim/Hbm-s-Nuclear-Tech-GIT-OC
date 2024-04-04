@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IFluidAcceptor;
 import com.hbm.inventory.container.ContainerCoreReceiver;
 import com.hbm.inventory.fluid.FluidType;
@@ -20,6 +21,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,8 +33,11 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityCoreReceiver extends TileEntityMachineBase implements IEnergyGenerator, IFluidAcceptor, ILaserable, IFluidStandardReceiver, SimpleComponent, IGUIProvider, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityCoreReceiver extends TileEntityMachineBase implements IEnergyGenerator, IFluidAcceptor, ILaserable, IFluidStandardReceiver, SimpleComponent, ManagedPeripheral, IGUIProvider, IInfoProviderEC {
 	
 	public long power;
 	public long joules;
@@ -190,26 +195,42 @@ public class TileEntityCoreReceiver extends TileEntityMachineBase implements IEn
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "dfc_receiver";
+		return CompatHandler.Compats.DFC_RECEIVER.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getEnergyInfo(Context context, Arguments args) {
-		return new Object[] {joules, getPower()}; //literally only doing this for the consistency between components
+	public String[] methods() {
+		return new String[] {
+				"getEnergyInfo",
+				"getCryogel",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCryogel(Context context, Arguments args) {
-		return new Object[] {tank.getFill()};
+	public static String[] callbacks() {
+		return new String[] {
+				"getEnergyInfo",
+				"getCryogel",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {joules, getPower(), tank.getFill()};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getEnergyInfo"):
+				return new Object[] {joules, getPower()}; //literally only doing this for the consistency between components
+			case ("getCryogel"):
+				return new Object[] {tank.getFill()};
+			case ("getInfo"):
+				return new Object[] {joules, getPower(), tank.getFill()};
+		}
+		throw new NoSuchMethodException();
 	}
+
 
 	@Override
 	public Container provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) {

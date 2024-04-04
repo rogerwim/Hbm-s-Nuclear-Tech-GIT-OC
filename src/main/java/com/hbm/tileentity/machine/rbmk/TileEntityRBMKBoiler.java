@@ -6,6 +6,7 @@ import api.hbm.fluid.IPipeNet;
 import api.hbm.tile.IInfoProviderEC;
 
 import com.hbm.blocks.ModBlocks;
+import com.hbm.blocks.machine.rbmk.RBMKRod;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
 import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IControlReceiver;
@@ -16,6 +17,7 @@ import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.inventory.gui.GUIRBMKBoiler;
+import com.hbm.items.machine.ItemRBMKRod;
 import com.hbm.lib.Library;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKConsole.ColumnType;
 import com.hbm.util.CompatEnergyControl;
@@ -26,6 +28,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -37,8 +40,11 @@ import net.minecraft.world.World;
 import java.util.ArrayList;
 import java.util.List;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityRBMKBoiler extends TileEntityRBMKSlottedBase implements IFluidAcceptor, IFluidSource, IControlReceiver, IFluidStandardTransceiver, SimpleComponent, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityRBMKBoiler extends TileEntityRBMKSlottedBase implements IFluidAcceptor, IFluidSource, IControlReceiver, IFluidStandardTransceiver, SimpleComponent, ManagedPeripheral, IInfoProviderEC {
 	
 	public FluidTank feed;
 	public FluidTank steam;
@@ -345,62 +351,67 @@ public class TileEntityRBMKBoiler extends TileEntityRBMKSlottedBase implements I
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "rbmk_boiler";
+		return CompatHandler.Compats.RBMK_BOILER.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getHeat(Context context, Arguments args) {
-		return new Object[] {heat};
-	}
-	
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getSteam(Context context, Arguments args) {
-		return new Object[] {steam.getFill()};
-	}
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getSteamMax(Context context, Arguments args) {
-		return new Object[] {steam.getMaxFill()};
-	}
-	
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getWater(Context context, Arguments args) {
-		return new Object[] {feed.getFill()};
-	}
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getWaterMax(Context context, Arguments args) {
-		return new Object[] {feed.getMaxFill()};
+	public String[] methods() {
+		return new String[] {
+				"getHeat",
+				"getSteam",
+				"getSteamMax",
+				"getWater",
+				"getWaterMax",
+				"getCoordinates",
+				"getInfo",
+				"getSteamType",
+				"setSteamType"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCoordinates(Context context, Arguments args) {
-		return new Object[] {xCoord, yCoord, zCoord};
+	public static String[] callbacks() {
+		return new String[] {
+				"getHeat",
+				"getSteam",
+				"getSteamMax",
+				"getWater",
+				"getWaterMax",
+				"getCoordinates",
+				"getInfo",
+				"getSteamType",
+				"setSteamType"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		int type_1 = (int) CompatHandler.steamTypeToInt(steam.getTankType())[0];
-		return new Object[] {heat, steam.getFill(), steam.getMaxFill(), feed.getFill(), feed.getMaxFill(), type_1, xCoord, yCoord, zCoord};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getSteamType(Context context, Arguments args) {
-		return CompatHandler.steamTypeToInt(steam.getTankType());
-	}
-
-	@Callback(direct = true, limit = 4)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] setSteamType(Context context, Arguments args) {
-		int type = args.checkInteger(0);
-		steam.setTankType(CompatHandler.intToSteamType(type));
-		return new Object[] {true};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case("getHeat"):
+				return new Object[] {heat};
+			case("getSteam"):
+				return new Object[] {steam.getFill()};
+			case("getSteamMax"):
+				return new Object[] {steam.getMaxFill()};
+			case("getWater"):
+				return new Object[] {feed.getFill()};
+			case("getWaterMax"):
+				return new Object[] {feed.getMaxFill()};
+			case("getCoordinates"):
+				return new Object[] {xCoord, yCoord, zCoord};
+			case("getInfo"):
+				int type_1 = (int) CompatHandler.steamTypeToInt(steam.getTankType())[0];
+				return new Object[] {heat, steam.getFill(), steam.getMaxFill(), feed.getFill(), feed.getMaxFill(), type_1, xCoord, yCoord, zCoord};
+			case("getSteamType"):
+				return CompatHandler.steamTypeToInt(steam.getTankType());
+			case("setSteamType"):
+				int type = args.checkInteger(0);
+				steam.setTankType(CompatHandler.intToSteamType(type));
+				return new Object[] {true};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

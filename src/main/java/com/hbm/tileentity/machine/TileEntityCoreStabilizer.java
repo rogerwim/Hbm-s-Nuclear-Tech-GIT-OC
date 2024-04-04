@@ -1,5 +1,6 @@
 package com.hbm.tileentity.machine;
 
+import com.hbm.handler.CompatHandler;
 import com.hbm.inventory.container.ContainerCoreStabilizer;
 import com.hbm.inventory.gui.GUICoreStabilizer;
 import com.hbm.items.ModItems;
@@ -16,6 +17,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -27,8 +29,11 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityCoreStabilizer extends TileEntityMachineBase implements IEnergyUser, SimpleComponent, IGUIProvider, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityCoreStabilizer extends TileEntityMachineBase implements IEnergyUser, SimpleComponent, ManagedPeripheral, IGUIProvider, IInfoProviderEC {
 
 	public long power;
 	public static final long maxPower = 2500000000L;
@@ -172,48 +177,59 @@ public class TileEntityCoreStabilizer extends TileEntityMachineBase implements I
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "dfc_stabilizer";
+		return CompatHandler.Compats.DFC_STABILIZER.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getEnergyInfo(Context context, Arguments args) {
-		return new Object[] {getPower(), getMaxPower()};
+	public String[] methods() {
+		return new String[] {
+				"getEnergyInfo",
+				"getInput",
+				"getDurability",
+				"getInfo",
+				"setInput"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInput(Context context, Arguments args) {
-		return new Object[] {watts};
+	public static String[] callbacks() {
+		return new String[] {
+				"getEnergyInfo",
+				"getInput",
+				"getDurability",
+				"getInfo",
+				"setInput"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getDurability(Context context, Arguments args) {
-		if(slots[0] != null && slots[0].getItem() == ModItems.ams_lens && ItemLens.getLensDamage(slots[0]) < ((ItemLens)ModItems.ams_lens).maxDamage) {
-			return new Object[] {ItemLens.getLensDamage(slots[0])};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getEnergyInfo"):
+				return new Object[] {getPower(), getMaxPower()};
+			case ("getInput"):
+				return new Object[] {watts};
+			case ("getDurability"):
+				if(slots[0] != null && slots[0].getItem() == ModItems.ams_lens && ItemLens.getLensDamage(slots[0]) < ((ItemLens)ModItems.ams_lens).maxDamage) {
+					return new Object[] {ItemLens.getLensDamage(slots[0])};
+				}
+				return new Object[] {"N/A"};
+			case ("getInfo"):
+				Object lens_damage_buf;
+				if(slots[0] != null && slots[0].getItem() == ModItems.ams_lens && ItemLens.getLensDamage(slots[0]) < ((ItemLens)ModItems.ams_lens).maxDamage) {
+					lens_damage_buf = ItemLens.getLensDamage(slots[0]);
+				} else {
+					lens_damage_buf = "N/A";
+				}
+				return new Object[] {power, maxPower, watts, lens_damage_buf};
+			case ("setInput"):
+				int newOutput = args.checkInteger(0);
+				watts = MathHelper.clamp_int(newOutput, 0, 100);
+				return new Object[] {};
 		}
-		return new Object[] {"N/A"};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		Object lens_damage_buf;
-		if(slots[0] != null && slots[0].getItem() == ModItems.ams_lens && ItemLens.getLensDamage(slots[0]) < ((ItemLens)ModItems.ams_lens).maxDamage) {
-			lens_damage_buf = ItemLens.getLensDamage(slots[0]);
-		} else {
-			lens_damage_buf = "N/A";
-		}
-		return new Object[] {power, maxPower, watts, lens_damage_buf};
-	}
-
-	@Callback(direct = true, limit = 4)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] setInput(Context context, Arguments args) {
-		int newOutput = args.checkInteger(0);
-		watts = MathHelper.clamp_int(newOutput, 0, 100);
-		return new Object[] {};
+		throw new NoSuchMethodException();
 	}
 
 	@Override

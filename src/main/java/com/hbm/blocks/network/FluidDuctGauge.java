@@ -8,6 +8,7 @@ import java.util.Locale;
 import com.hbm.blocks.IBlockMultiPass;
 import com.hbm.blocks.ILookOverlay;
 import com.hbm.blocks.ITooltipProvider;
+import com.hbm.handler.CompatHandler;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.lib.RefStrings;
 import com.hbm.render.block.RenderBlockMultipass;
@@ -22,6 +23,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.material.Material;
@@ -107,8 +109,11 @@ public class FluidDuctGauge extends FluidDuctBase implements IBlockMultiPass, IL
 		return IBlockMultiPass.getRenderType();
 	}
 
-	@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-	public static class TileEntityPipeGauge extends TileEntityPipeBaseNT implements INBTPacketReceiver, SimpleComponent {
+	@Optional.InterfaceList({
+			@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+			@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+	})
+	public static class TileEntityPipeGauge extends TileEntityPipeBaseNT implements INBTPacketReceiver, SimpleComponent, ManagedPeripheral {
 
 		private BigInteger lastMeasurement = BigInteger.valueOf(10);
 		private long deltaTick = 0;
@@ -152,26 +157,42 @@ public class FluidDuctGauge extends FluidDuctBase implements IBlockMultiPass, IL
 			this.deltaLastSecond = Math.max(nbt.getLong("deltaS"), 0);
 		}
 
+		@Override
 		public String getComponentName() {
-			return "ntm_fluid_gauge";
+			return CompatHandler.Compats.PIPE_GAUGE.name;
 		}
 
-		@Callback(direct = true)
+		@Override
 		@Optional.Method(modid = "OpenComputers")
-		public Object[] getTransfer(Context context, Arguments args) {
-			return new Object[] {deltaTick, deltaSecond};
+		public String[] methods() {
+			return new String[] {
+					"getTick",
+					"getFluid",
+					"getInfo"
+			};
 		}
 
-		@Callback(direct = true)
 		@Optional.Method(modid = "OpenComputers")
-		public Object[] getFluid(Context context, Arguments args) {
-			return new Object[] {getType().getName()};
+		public static String[] callbacks() {
+			return new String[] {
+					"getTick",
+					"getFluid",
+					"getInfo"
+			};
 		}
 
-		@Callback(direct = true)
+		@Override
 		@Optional.Method(modid = "OpenComputers")
-		public Object[] getInfo(Context context, Arguments args) {
-			return new Object[] {deltaTick, deltaSecond, getType().getName(), xCoord, yCoord, zCoord};
+		public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+			switch(method) {
+				case("getTick"):
+					return new Object[] {deltaTick};
+				case("getFluid"):
+					return new Object[] {getType().getName()};
+				case("getInfo"):
+					return new Object[] {deltaTick, getType().getName(), xCoord, yCoord, zCoord};
+			}
+			throw new NoSuchMethodException();
 		}
 	}
 }

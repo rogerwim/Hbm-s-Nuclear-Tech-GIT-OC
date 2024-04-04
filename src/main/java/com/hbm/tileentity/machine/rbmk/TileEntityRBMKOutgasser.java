@@ -2,13 +2,16 @@ package com.hbm.tileentity.machine.rbmk;
 
 import api.hbm.fluid.IFluidStandardSender;
 import com.hbm.blocks.ModBlocks;
+import com.hbm.blocks.machine.rbmk.RBMKRod;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
+import com.hbm.handler.CompatHandler;
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.container.ContainerRBMKOutgasser;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.inventory.gui.GUIRBMKOutgasser;
 import com.hbm.inventory.recipes.OutgasserRecipes;
+import com.hbm.items.machine.ItemRBMKRod;
 import com.hbm.lib.Library;
 import com.hbm.tileentity.machine.rbmk.TileEntityRBMKConsole.ColumnType;
 import com.hbm.util.Tuple.Pair;
@@ -19,6 +22,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -27,8 +31,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implements IRBMKFluxReceiver, IFluidStandardSender, SimpleComponent {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implements IRBMKFluxReceiver, IFluidStandardSender, SimpleComponent, ManagedPeripheral {
 
 	public FluidTank gas;
 	public double progress;
@@ -223,43 +230,52 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 	//do some opencomputers stuff
 	@Override
 	public String getComponentName() {
-		return "rbmk_outgasser";
+		return CompatHandler.Compats.RBMK_OUTGASSER.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getGas(Context context, Arguments args) {
-		return new Object[] {gas.getFill()};
+	public String[] methods() {
+		return new String[] {
+				"getGas",
+				"getGasMax",
+				"getGasType",
+				"getProgress",
+				"getCoordinates",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getGasMax(Context context, Arguments args) {
-		return new Object[] {gas.getMaxFill()};
-	}
-	
-		@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getGasType(Context context, Arguments args) {
-		return new Object[] {gas.getTankType().getID()};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getProgress(Context context, Arguments args) {
-		return new Object[] {progress};
+	public static String[] callbacks() {
+		return new String[] {
+				"getGas",
+				"getGasMax",
+				"getGasType",
+				"getProgress",
+				"getCoordinates",
+				"getInfo"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCoordinates(Context context, Arguments args) {
-		return new Object[] {xCoord, yCoord, zCoord};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {gas.getFill(), gas.getMaxFill(), progress, gas.getTankType().getID(), xCoord, yCoord, zCoord};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case("getGas"):
+				return new Object[] {gas.getFill()};
+			case("getGasMax"):
+				return new Object[] {gas.getMaxFill()};
+			case("getGasType"):
+				return new Object[] {gas.getTankType().getID()};
+			case("getProgress"):
+				return new Object[] {progress};
+			case("getCoordinates"):
+				return new Object[] {xCoord, yCoord, zCoord};
+			case("getInfo"):
+				return new Object[] {gas.getFill(), gas.getMaxFill(), progress, gas.getTankType().getID(), xCoord, yCoord, zCoord};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

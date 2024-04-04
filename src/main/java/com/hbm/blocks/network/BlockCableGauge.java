@@ -21,6 +21,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.BlockPistonBase;
@@ -104,8 +105,11 @@ public class BlockCableGauge extends BlockContainer implements IBlockMultiPass, 
 		return IBlockMultiPass.getRenderType();
 	}
 
-	@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-	public static class TileEntityCableGauge extends TileEntityCableBaseNT implements INBTPacketReceiver, SimpleComponent {
+	@Optional.InterfaceList({
+			@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+			@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+	})
+	public static class TileEntityCableGauge extends TileEntityCableBaseNT implements INBTPacketReceiver, SimpleComponent, ManagedPeripheral {
 
 		private BigInteger lastMeasurement = BigInteger.valueOf(10);
 		private long deltaTick = 0;
@@ -149,13 +153,31 @@ public class BlockCableGauge extends BlockContainer implements IBlockMultiPass, 
 
 		@Override
 		public String getComponentName() {
-			return "power_gauge";
+			return CompatHandler.Compats.CABLE_GAUGE.name;
 		}
 
-		@Callback(direct = true)
+		@Override
 		@Optional.Method(modid = "OpenComputers")
-		public Object[] getTick(Context context, Arguments args) {
-			return new Object[] {this.deltaTick};
+		public String[] methods() {
+			return new String[] {
+					"getTick"
+			};
+		}
+
+		@Optional.Method(modid = "OpenComputers")
+		public static String[] callbacks() {
+			return new String[] {
+					"getTick"
+			};
+		}
+
+		@Override
+		@Optional.Method(modid = "OpenComputers")
+		public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+			if ("getTick".equals(method)) {
+				return new Object[] {this.deltaTick};
+			}
+			throw new NoSuchMethodException();
 		}
 
 	}

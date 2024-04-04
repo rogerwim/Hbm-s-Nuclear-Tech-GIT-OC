@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.MobConfig;
+import com.hbm.handler.CompatHandler;
 import com.hbm.handler.GameruleHandler;
 import com.hbm.handler.radiation.ChunkRadiationManager;
 import com.hbm.interfaces.IControlReceiver;
@@ -13,6 +14,7 @@ import com.hbm.inventory.container.ContainerReactorResearch;
 import com.hbm.inventory.gui.GUIReactorResearch;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemPlateFuel;
+import com.hbm.items.special.ItemFusionShield;
 import com.hbm.tileentity.IGUIProvider;
 import com.hbm.tileentity.TileEntityMachineBase;
 import com.hbm.util.CompatEnergyControl;
@@ -24,6 +26,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -40,9 +43,12 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
 //TODO: fix reactor control;
-public class TileEntityReactorResearch extends TileEntityMachineBase implements IControlReceiver, SimpleComponent, IGUIProvider, IInfoProviderEC {
+public class TileEntityReactorResearch extends TileEntityMachineBase implements IControlReceiver, SimpleComponent, ManagedPeripheral, IGUIProvider, IInfoProviderEC {
 	
 	@SideOnly(Side.CLIENT)
 	public double lastLevel;
@@ -398,45 +404,54 @@ public class TileEntityReactorResearch extends TileEntityMachineBase implements 
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "research_reactor";
+		return CompatHandler.Compats.RESEARCH.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getTemp(Context context, Arguments args) { // or getHeat, whatever.
-		return new Object[] {heat};
+	public String[] methods() {
+		return new String[] {
+				"getTemp",
+				"getLevel",
+				"getTargetLevel",
+				"getFlux",
+				"getInfo",
+				"setLevel"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getLevel(Context context, Arguments args) {
-		return new Object[] {level * 100};
+	public static String[] callbacks() {
+		return new String[] {
+				"getTemp",
+				"getLevel",
+				"getTargetLevel",
+				"getFlux",
+				"getInfo",
+				"setLevel"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getTargetLevel(Context context, Arguments args) {
-		return new Object[] {targetLevel};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFlux(Context context, Arguments args) {
-		return new Object[] {totalFlux};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {heat, level, targetLevel, totalFlux};
-	}
-
-	@Callback(direct = true, limit = 4)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] setLevel(Context context, Arguments args) {
-		double newLevel = args.checkDouble(0)/100.0;
-		targetLevel = MathHelper.clamp_double(newLevel, 0, 1.0);
-		return new Object[] {};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getTemp"):
+				return new Object[] {heat};
+			case ("getLevel"):
+				return new Object[] {level * 100};
+			case ("getTargetLevel"):
+				return new Object[] {targetLevel};
+			case ("getFlux"):
+				return new Object[] {totalFlux};
+			case ("getInfo"):
+				return new Object[] {heat, level, targetLevel, totalFlux};
+			case ("setLevel"):
+				double newLevel = args.checkDouble(0)/100.0;
+				targetLevel = MathHelper.clamp_double(newLevel, 0, 1.0);
+				return new Object[] {};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

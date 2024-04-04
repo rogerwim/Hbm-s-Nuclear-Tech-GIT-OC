@@ -8,6 +8,7 @@ import java.util.function.Function;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
 import com.hbm.extprop.HbmLivingProps;
+import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.container.ContainerMachineRadarNT;
 import com.hbm.inventory.gui.GUIMachineRadarNT;
@@ -46,6 +47,7 @@ import io.netty.buffer.ByteBuf;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
@@ -65,8 +67,11 @@ import net.minecraft.world.WorldServer;
  * Now with SmЯt™ lag-free entity detection! (patent pending)
  * @author hbm
  */
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")})
-public class TileEntityMachineRadarNT extends TileEntityMachineBase implements IEnergyUser, IGUIProvider, IConfigurableMachine, IControlReceiver, SimpleComponent {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityMachineRadarNT extends TileEntityMachineBase implements IEnergyUser, IGUIProvider, IConfigurableMachine, IControlReceiver, SimpleComponent, ManagedPeripheral {
 
 	public boolean scanMissiles = true;
 	public boolean scanShells = true;
@@ -602,24 +607,45 @@ public class TileEntityMachineRadarNT extends TileEntityMachineBase implements I
 	//holy shittttt
 	@Override
 	public String getComponentName() {
-		return "ntm_radar";
+		return CompatHandler.Compats.RADAR.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getEntityCount(Context context, Arguments args) {
-		return new Object[] {entries.size()};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getEntityAtIndex(Context context, Arguments args) {
-		RadarEntry e = entries.get(args.checkInteger(0));
-		boolean fancy = args.checkBoolean(1);
-		return new Object[] {
-				//if fancy display enabled and blipLevel == 11 then return "player", else return "missile".
-				//if fancy display not enabled then return blipLevel directly.
-			e.posX, e.posY, e.posZ, e.unlocalizedName, fancy ? e.blipLevel == 11 ? "Player" : "Missile" : e.blipLevel
+	public String[] methods() {
+		return new String[] {
+				"getEntityCount",
+				"getEntityAtIndex"
 		};
 	}
+
+	@Optional.Method(modid = "OpenComputers")
+	public static String[] callbacks() {
+		return new String[] {
+				"getEntityCount",
+				"getEntityAtIndex"
+		};
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getEntityCount"):
+				return new Object[] {entries.size()};
+			case ("getEntityAtIndex"):
+				int index = args.checkInteger(0);
+				if(index > entries.size())
+					throw new ArrayIndexOutOfBoundsException();
+				RadarEntry e = entries.get(index);
+				boolean fancy = args.checkBoolean(1);
+				return new Object[] {
+						//if fancy display enabled and blipLevel == 11 then return "player", else return "missile".
+						//if fancy display not enabled then return blipLevel directly.
+						e.posX, e.posY, e.posZ, e.unlocalizedName, fancy ? e.blipLevel == 11 ? "Player" : "Missile" : e.blipLevel
+				};
+		}
+		throw new NoSuchMethodException();
+	}
+
 }

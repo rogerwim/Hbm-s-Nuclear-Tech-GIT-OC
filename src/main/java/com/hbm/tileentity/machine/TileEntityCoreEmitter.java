@@ -5,6 +5,7 @@ import api.hbm.energy.IEnergyUser;
 import api.hbm.fluid.IFluidStandardReceiver;
 import api.hbm.tile.IInfoProviderEC;
 
+import com.hbm.handler.CompatHandler;
 import com.hbm.inventory.container.ContainerCoreEmitter;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
@@ -20,6 +21,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiScreen;
@@ -36,8 +38,11 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import java.util.List;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityCoreEmitter extends TileEntityMachineBase implements IEnergyUser, ILaserable, IFluidStandardReceiver, SimpleComponent, IGUIProvider, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityCoreEmitter extends TileEntityMachineBase implements IEnergyUser, ILaserable, IFluidStandardReceiver, SimpleComponent, ManagedPeripheral, IGUIProvider, IInfoProviderEC {
 	
 	public long power;
 	public static final long maxPower = 1000000000L;
@@ -272,56 +277,63 @@ public class TileEntityCoreEmitter extends TileEntityMachineBase implements IEne
 	public FluidTank[] getAllTanks() {
 		return new FluidTank[] { tank };
 	}
-	
+
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "dfc_emitter";
+		return CompatHandler.Compats.DFC_EMITTER.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getEnergyInfo(Context context, Arguments args) {
-		return new Object[] {getPower(), getMaxPower()};
+	public String[] methods() {
+		return new String[] {
+				"getEnergyInfo",
+				"getCryogel",
+				"getInput",
+				"getInfo",
+				"isActive",
+				"setActive",
+				"setInput"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCryogel(Context context, Arguments args) {
-		return new Object[] {tank.getFill()};
+	public static String[] callbacks() {
+		return new String[] {
+				"getEnergyInfo",
+				"getCryogel",
+				"getInput",
+				"getInfo",
+				"isActive",
+				"setActive",
+				"setInput"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInput(Context context, Arguments args) {
-		return new Object[] {watts};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {getPower(), getMaxPower(), tank.getFill(), watts, isOn};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] isActive(Context context, Arguments args) {
-		return new Object[] {isOn};
-	}
-
-	@Callback(direct = true, limit = 4)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] setActive(Context context, Arguments args) {
-		isOn = args.checkBoolean(0);
-		return new Object[] {};
-	}
-
-	@Callback(direct = true, limit = 4)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] setInput(Context context, Arguments args) {
-		int newOutput = args.checkInteger(0);
-		watts = MathHelper.clamp_int(newOutput, 0, 100);
-		return new Object[] {};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getEnergyInfo"):
+				return new Object[] {getPower(), getMaxPower()};
+			case ("getCryogel"):
+				return new Object[] {tank.getFill()};
+			case ("getInput"):
+				return new Object[] {watts};
+			case ("getInfo"):
+				return new Object[] {getPower(), getMaxPower(), tank.getFill(), watts, isOn};
+			case ("isActive"):
+				return new Object[] {isOn};
+			case ("setActive"):
+				isOn = args.checkBoolean(0);
+				return new Object[] {};
+			case ("setInput"):
+				int newOutput = args.checkInteger(0);
+				watts = MathHelper.clamp_int(newOutput, 0, 100);
+				return new Object[] {};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

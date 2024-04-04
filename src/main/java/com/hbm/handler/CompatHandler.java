@@ -16,12 +16,6 @@ import com.hbm.tileentity.machine.storage.TileEntityMachineFluidTank;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import cpw.mods.fml.common.Optional;
-import li.cil.oc.api.machine.Arguments;
-import li.cil.oc.api.machine.Callback;
-import li.cil.oc.api.machine.Context;
-
-import java.util.function.Consumer;
-
 
 /**
  * General handler for OpenComputers compatibility.
@@ -40,49 +34,49 @@ public class CompatHandler {
         CONNECTOR(TileEntityOCConnector.class, null, null), //why would you even? this is only possible by placing two next to each other
 
         //RBMK
-        RBMK_FUEL(TileEntityRBMKRod.class, "rbmk_fuel_rod",),
-        RBMK_CONTROL(TileEntityRBMKControl.class, "rbmk_control_rod",),
-        RBMK_HEATER(TileEntityRBMKHeater.class, "rbmk_heater",),
-        RBMK_BOILER(TileEntityRBMKBoiler.class, "rbmk_boiler",),
-        RBMK_OUTGASSER(TileEntityRBMKOutgasser.class, "rbmk_outgasser",),
-        RBMK_COOLER(TileEntityRBMKCooler.class, "rbmk_cooler",),
-        RBMK_CONSOLE(TileEntityRBMKConsole.class, "rbmk_console",),
-        RBMK_CRANE(TileEntityCraneConsole.class, "rbmk_crane",),
+        RBMK_FUEL(TileEntityRBMKRod.class, "rbmk_fuel_rod", TileEntityRBMKRod.callbacks()),
+        RBMK_CONTROL(TileEntityRBMKControl.class, "rbmk_control_rod", TileEntityRBMKControl.callbacks()),
+        RBMK_HEATER(TileEntityRBMKHeater.class, "rbmk_heater", TileEntityRBMKHeater.callbacks()),
+        RBMK_BOILER(TileEntityRBMKBoiler.class, "rbmk_boiler", TileEntityRBMKBoiler.callbacks()),
+        RBMK_OUTGASSER(TileEntityRBMKOutgasser.class, "rbmk_outgasser", TileEntityRBMKOutgasser.callbacks()),
+        RBMK_COOLER(TileEntityRBMKCooler.class, "rbmk_cooler", TileEntityRBMKCooler.callbacks()),
+        RBMK_CONSOLE(TileEntityRBMKConsole.class, "rbmk_console", TileEntityRBMKConsole.callbacks()),
+        RBMK_CRANE(TileEntityCraneConsole.class, "rbmk_crane", TileEntityCraneConsole.callbacks()),
 
         //DFC
-        DFC_EMITTER(TileEntityCoreEmitter.class, "dfc_emitter",),
-        DFC_STABILIZER(TileEntityCoreStabilizer.class, "dfc_stabilizer",),
-        DFC_INJECTOR(TileEntityCoreInjector.class, "dfc_injector",),
-        DFC_RECEIVER(TileEntityCoreReceiver.class, "dfc_receiver",),
+        DFC_EMITTER(TileEntityCoreEmitter.class, "dfc_emitter", TileEntityCoreEmitter.callbacks()),
+        DFC_STABILIZER(TileEntityCoreStabilizer.class, "dfc_stabilizer", TileEntityCoreStabilizer.callbacks()),
+        DFC_INJECTOR(TileEntityCoreInjector.class, "dfc_injector", TileEntityCoreInjector.callbacks()),
+        DFC_RECEIVER(TileEntityCoreReceiver.class, "dfc_receiver", TileEntityCoreReceiver.callbacks()),
 
         //Other reactors
-        ITER(TileEntityITER.class, "ntm_fusion",),
-        PWR(TileEntityPWRController.class, "ntm_pwr_control",),
-        RESEARCH(TileEntityReactorResearch.class, "research_reactor",),
-        RESEARCH_CONTROL(TileEntityReactorControl.class, "reactor_control",),
-        ZIRNOX(TileEntityReactorZirnox.class, "zirnox_reactor",),
+        ITER(TileEntityITER.class, "ntm_fusion", TileEntityITER.callbacks()),
+        PWR(TileEntityPWRController.class, "ntm_pwr_control", TileEntityPWRController.callbacks()),
+        RESEARCH(TileEntityReactorResearch.class, "research_reactor", TileEntityReactorResearch.callbacks()),
+        RESEARCH_CONTROL(TileEntityReactorControl.class, "reactor_control", TileEntityReactorControl.callbacks()),
+        ZIRNOX(TileEntityReactorZirnox.class, "zirnox_reactor", TileEntityReactorZirnox.callbacks()),
 
         //Turbines
-        SMALL_TURBINE(TileEntityMachineTurbine.class, "ntm_turbine",), // no clue how these will operate together since they have the same compat name
-        TURBINE(TileEntityMachineLargeTurbine.class, "ntm_turbine",),
-        LARGE_TURBINE(TileEntityChungus.class, "ntm_turbine",),
-        GAS_TURBINE(TileEntityMachineTurbineGas.class, "ntm_gas_turbine",),
+        SMALL_TURBINE(TileEntityMachineTurbine.class, "ntm_turbine", TileEntityMachineTurbine.callbacks()), // no clue how these will operate together since they have the same compat name
+        TURBINE(TileEntityMachineLargeTurbine.class, "ntm_turbine", TileEntityMachineLargeTurbine.callbacks()),
+        LARGE_TURBINE(TileEntityChungus.class, "ntm_turbine", TileEntityChungus.callbacks()),
+        GAS_TURBINE(TileEntityMachineTurbineGas.class, "ntm_gas_turbine", TileEntityMachineTurbineGas.callbacks()),
 
         //Other machines
-        GEIGER(TileEntityGeiger.class, "ntm_geiger",),
-        RADAR(TileEntityMachineRadarNT.class, "ntm_radar",),
-        LARGE_RADAR(TileEntityMachineRadarLarge.class, "ntm_radar",),
-        MICROWAVE(TileEntityMicrowave.class, "ntm_microwave", new TileEntityMicrowave().methods()),
-        CABLE_GAUGE(BlockCableGauge.TileEntityCableGauge.class, "power_gauge",),
-        PIPE_GAUGE(FluidDuctGauge.TileEntityPipeGauge.class, "ntm_fluid_gauge",),
+        GEIGER(TileEntityGeiger.class, "ntm_geiger", TileEntityGeiger.callbacks()),
+        RADAR(TileEntityMachineRadarNT.class, "ntm_radar", TileEntityMachineRadarNT.callbacks()),
+        LARGE_RADAR(TileEntityMachineRadarLarge.class, "ntm_radar", TileEntityMachineRadarLarge.callbacks()),
+        MICROWAVE(TileEntityMicrowave.class, "ntm_microwave", TileEntityMicrowave.callbacks()),
+        CABLE_GAUGE(BlockCableGauge.TileEntityCableGauge.class, "power_gauge", BlockCableGauge.TileEntityCableGauge.callbacks()),
+        PIPE_GAUGE(FluidDuctGauge.TileEntityPipeGauge.class, "ntm_fluid_gauge", FluidDuctGauge.TileEntityPipeGauge.callbacks()),
 
         //Launch pads TODO: add other launch pads into OC compat
-        LAUNCH_TABLE(TileEntityLaunchTable.class, "large_launch_pad",),
+        LAUNCH_TABLE(TileEntityLaunchTable.class, "large_launch_pad", TileEntityLaunchTable.callbacks()),
 
         //Storage
-        BARREL(TileEntityBarrel.class, "ntm_fluid_tank",),
-        TANK(TileEntityMachineFluidTank.class, "ntm_fluid_tank",),
-        BATTERY(TileEntityMachineBattery.class, "ntm_energy_storage",);
+        BARREL(TileEntityBarrel.class, "ntm_fluid_tank", TileEntityBarrel.callbacks()),
+        TANK(TileEntityMachineFluidTank.class, "ntm_fluid_tank", TileEntityMachineFluidTank.callbacks()),
+        BATTERY(TileEntityMachineBattery.class, "ntm_energy_storage", TileEntityMachineBattery.callbacks());
 
 
         //Also add new compat here; if not added then connectors will not be able to see it.
@@ -135,6 +129,7 @@ public class CompatHandler {
     /**
      * Mostly for RBMKs, though it can support any machine.
      */
+    @Optional.Method(modid = "OpenComputers")
     public static Object[] steamTypeToInt(FluidType type) {
         if(type == Fluids.STEAM) {return new Object[] {0};}
         else if(type == Fluids.HOTSTEAM) {return new Object[] {1};}
@@ -144,6 +139,7 @@ public class CompatHandler {
     /**
      * Inverse of `steamTypeToInt()`
      */
+    @Optional.Method(modid = "OpenComputers")
     public static FluidType intToSteamType(int arg) {
         switch(arg) {
             default:

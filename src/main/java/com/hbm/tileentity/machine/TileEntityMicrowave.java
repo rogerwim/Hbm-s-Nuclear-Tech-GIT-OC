@@ -27,7 +27,10 @@ import net.minecraft.world.World;
 
 import java.util.Objects;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
 public class TileEntityMicrowave extends TileEntityMachineBase implements IEnergyUser, IGUIProvider, SimpleComponent, ManagedPeripheral {
 	
 	public long power;
@@ -226,19 +229,13 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 	}
 
 	@Override
-	public Container provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		return new ContainerMicrowave(player.inventory, this);
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public GuiScreen provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		return new GUIMicrowave(player.inventory, this);
-	}
-
-	@Override
 	@Optional.Method(modid = "OpenComputers")
 	public String[] methods() {
+		return new String[] {"test"};
+	}
+
+	@Optional.Method(modid = "OpenComputers")
+	public static String[] callbacks() {
 		return new String[] {"test"};
 	}
 
@@ -248,5 +245,16 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 		if(Objects.equals(method, "test"))
 			return new Object[] {"This is a testing device for everything OC."};
 		throw new NoSuchMethodException();
+	}
+
+	@Override
+	public Container provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) {
+		return new ContainerMicrowave(player.inventory, this);
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public GuiScreen provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
+		return new GUIMicrowave(player.inventory, this);
 	}
 }

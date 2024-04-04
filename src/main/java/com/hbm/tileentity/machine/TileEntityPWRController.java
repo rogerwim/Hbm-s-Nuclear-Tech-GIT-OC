@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.hbm.blocks.ModBlocks;
+import com.hbm.handler.CompatHandler;
 import com.hbm.handler.GameruleHandler;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.container.ContainerPWR;
@@ -32,6 +33,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiScreen;
@@ -43,8 +45,11 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityPWRController extends TileEntityMachineBase implements IGUIProvider, IControlReceiver, SimpleComponent, IFluidStandardTransceiver {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityPWRController extends TileEntityMachineBase implements IGUIProvider, IControlReceiver, SimpleComponent, ManagedPeripheral, IFluidStandardTransceiver {
 	
 	public FluidTank[] tanks;
 	public int coreHeat;
@@ -548,51 +553,58 @@ public class TileEntityPWRController extends TileEntityMachineBase implements IG
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "ntm_pwr_control";
+		return CompatHandler.Compats.PWR.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getHeat(Context context, Arguments args) {
-		return new Object[] {coreHeat, hullHeat};
+	public String[] methods() {
+		return new String[] {
+				"getHeat",
+				"getFlux",
+				"getLevel",
+				"getCoolantInfo",
+				"getFuelInfo",
+				"getInfo",
+				"setLevel"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFlux(Context context, Arguments args) {
-		return new Object[] {flux};
+	public static String[] callbacks() {
+		return new String[] {
+				"getHeat",
+				"getFlux",
+				"getLevel",
+				"getCoolantInfo",
+				"getFuelInfo",
+				"getInfo",
+				"setLevel"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getLevel(Context context, Arguments args) {
-		return new Object[] {rodTarget, rodLevel};
-	}
-	
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCoolantInfo(Context context, Arguments args) {
-		return new Object[] {tanks[0].getFill(), tanks[0].getMaxFill(), tanks[1].getFill(), tanks[1].getMaxFill()};
-	}
-	
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFuelInfo(Context context, Arguments args) {
-		return new Object[] {amountLoaded, progress, processTime};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {coreHeat, hullHeat, flux, rodTarget, rodLevel, amountLoaded, progress, processTime, tanks[0].getFill(), tanks[0].getMaxFill(), tanks[1].getFill(), tanks[1].getMaxFill()};
-	}
-
-	@Callback(direct = true, limit = 4)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] setLevel(Context context, Arguments args) {
-		rodTarget = MathHelper.clamp_double(args.checkDouble(0), 0, 100);
-		this.markChanged();
-		return new Object[] {true};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getHeat"):
+				return new Object[] {coreHeat, hullHeat};
+			case ("getFlux"):
+				return new Object[] {flux};
+			case ("getLevel"):
+				return new Object[] {rodTarget, rodLevel};
+			case ("getCoolantInfo"):
+				return new Object[] {tanks[0].getFill(), tanks[0].getMaxFill(), tanks[1].getFill(), tanks[1].getMaxFill()};
+			case ("getFuelInfo"):
+				return new Object[] {amountLoaded, progress, processTime};
+			case ("getInfo"):
+				return new Object[] {coreHeat, hullHeat, flux, rodTarget, rodLevel, amountLoaded, progress, processTime, tanks[0].getFill(), tanks[0].getMaxFill(), tanks[1].getFill(), tanks[1].getMaxFill()};
+			case ("setLevel"):
+				rodTarget = MathHelper.clamp_double(args.checkDouble(0), 0, 100);
+				this.markChanged();
+				return new Object[] {true};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

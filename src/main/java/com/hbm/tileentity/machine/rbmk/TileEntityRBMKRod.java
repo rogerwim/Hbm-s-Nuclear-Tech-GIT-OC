@@ -4,6 +4,7 @@ import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.machine.rbmk.RBMKBase;
 import com.hbm.blocks.machine.rbmk.RBMKRod;
 import com.hbm.entity.projectile.EntityRBMKDebris.DebrisType;
+import com.hbm.handler.CompatHandler;
 import com.hbm.handler.GameruleHandler;
 import com.hbm.handler.radiation.ChunkRadiationManager;
 import com.hbm.inventory.container.ContainerRBMKRod;
@@ -20,8 +21,8 @@ import cpw.mods.fml.common.Optional;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
-import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -33,8 +34,11 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityRBMKRod extends TileEntityRBMKSlottedBase implements IRBMKFluxReceiver, IRBMKLoadable, SimpleComponent, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityRBMKRod extends TileEntityRBMKSlottedBase implements IRBMKFluxReceiver, IRBMKLoadable, SimpleComponent, ManagedPeripheral, IInfoProviderEC {
 	
 	//amount of "neutron energy" buffered for the next tick to use for the reaction
 	public double fluxFast;
@@ -394,106 +398,105 @@ public class TileEntityRBMKRod extends TileEntityRBMKSlottedBase implements IRBM
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "rbmk_fuel_rod";
+		return CompatHandler.Compats.RBMK_FUEL.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getHeat(Context context, Arguments args) {
-		return new Object[] {heat};
+	public String[] methods() {
+		return new String[] {
+				"getHeat",
+				"getFluxSlow",
+				"getFluxFast",
+				"getDepletion",
+				"getXenonPoison",
+				"getCoreHeat",
+				"getSkinHeat",
+				"getType",
+				"getInfo",
+				"getModerated",
+				"getCoordinates"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFluxSlow(Context context, Arguments args) {
-		return new Object[] {fluxSlow};
+	public static String[] callbacks() {
+		return new String[] {
+				"getHeat",
+				"getFluxSlow",
+				"getFluxFast",
+				"getDepletion",
+				"getXenonPoison",
+				"getCoreHeat",
+				"getSkinHeat",
+				"getType",
+				"getInfo",
+				"getModerated",
+				"getCoordinates"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getFluxFast(Context context, Arguments args) {
-		return new Object[] {fluxFast};
-	}
-	
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getDepletion(Context context, Arguments args) {
-		if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
-			return new Object[] {ItemRBMKRod.getEnrichment(slots[0])};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case("getHeat"):
+				return new Object[] {heat};
+			case("getFluxSlow"):
+				return new Object[] {fluxSlow};
+			case("getFluxFast"):
+				return new Object[] {fluxFast};
+			case("getDepletion"):
+				if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
+					return new Object[] {ItemRBMKRod.getEnrichment(slots[0])};
+				}
+				return new Object[] {"N/A"};
+			case("getXenonPoison"):
+				if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
+					return new Object[] {ItemRBMKRod.getPoison(slots[0])};
+				}
+				return new Object[] {"N/A"};
+			case("getCoreHeat"):
+				if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
+					return new Object[] {ItemRBMKRod.getCoreHeat(slots[0])};
+				}
+				return new Object[] {"N/A"};
+			case("getSkinHeat"):
+				if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
+					return new Object[] {ItemRBMKRod.getHullHeat(slots[0])};
+				}
+				return new Object[] {"N/A"};
+			case("getType"):
+				if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
+					return new Object[] {slots[0].getItem().getUnlocalizedName()};
+				}
+				return new Object[] {"N/A"};
+			case("getInfo"):
+				Object OC_enrich_buf;
+				Object OC_poison_buf;
+				Object OC_hull_buf;
+				Object OC_core_buf;
+				String OC_type;
+				if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
+					OC_enrich_buf = ItemRBMKRod.getEnrichment(slots[0]);
+					OC_poison_buf = ItemRBMKRod.getPoison(slots[0]);
+					OC_hull_buf = ItemRBMKRod.getHullHeat(slots[0]);
+					OC_core_buf = ItemRBMKRod.getCoreHeat(slots[0]);
+					OC_type = slots[0].getItem().getUnlocalizedName();
+				} else {
+					OC_enrich_buf = "N/A";
+					OC_poison_buf = "N/A";
+					OC_hull_buf = "N/A";
+					OC_core_buf = "N/A";
+					OC_type = "N/A";
+				}
+				return new Object[] {heat, OC_hull_buf, OC_core_buf, fluxSlow, fluxFast, OC_enrich_buf, OC_poison_buf, OC_type, ((RBMKRod)this.getBlockType()).moderated, xCoord, yCoord, zCoord};
+			case("getModerated"):
+				return new Object[] {((RBMKRod)this.getBlockType()).moderated};
+			case("getCoordinates"):
+				return new Object[] {xCoord, yCoord, zCoord};
 		}
-		return new Object[] {"N/A"};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getXenonPoison(Context context, Arguments args) {
-		if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
-			return new Object[] {ItemRBMKRod.getPoison(slots[0])};
-		}
-		return new Object[] {"N/A"};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCoreHeat(Context context, Arguments args) {
-		if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
-			return new Object[] {ItemRBMKRod.getCoreHeat(slots[0])};
-		}
-		return new Object[] {"N/A"};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getSkinHeat(Context context, Arguments args) {
-		if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
-			return new Object[] {ItemRBMKRod.getHullHeat(slots[0])};
-		}
-		return new Object[] {"N/A"};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getType(Context context, Arguments args) {
-		if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
-			return new Object[] {slots[0].getItem().getUnlocalizedName()};
-		}
-		return new Object[] {"N/A"};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		Object OC_enrich_buf;
-		Object OC_poison_buf;
-		Object OC_hull_buf;
-		Object OC_core_buf;
-		String OC_type;
-		if(slots[0] != null && slots[0].getItem() instanceof ItemRBMKRod) {
-			OC_enrich_buf = ItemRBMKRod.getEnrichment(slots[0]);
-			OC_poison_buf = ItemRBMKRod.getPoison(slots[0]);
-			OC_hull_buf = ItemRBMKRod.getHullHeat(slots[0]);
-			OC_core_buf = ItemRBMKRod.getCoreHeat(slots[0]);
-			OC_type = slots[0].getItem().getUnlocalizedName();
-		} else {
-			OC_enrich_buf = "N/A";
-			OC_poison_buf = "N/A";
-			OC_hull_buf = "N/A";
-			OC_core_buf = "N/A";
-			OC_type = "N/A";
-		}
-		return new Object[] {heat, OC_hull_buf, OC_core_buf, fluxSlow, fluxFast, OC_enrich_buf, OC_poison_buf, OC_type, ((RBMKRod)this.getBlockType()).moderated, xCoord, yCoord, zCoord};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getModerated(Context context, Arguments args) {
-		return new Object[] {((RBMKRod)this.getBlockType()).moderated};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCoordinates(Context context, Arguments args) {
-		return new Object[] {xCoord, yCoord, zCoord};
+		throw new NoSuchMethodException();
 	}
 
 	@Override

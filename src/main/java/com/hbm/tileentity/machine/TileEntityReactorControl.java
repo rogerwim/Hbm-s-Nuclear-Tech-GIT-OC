@@ -2,6 +2,7 @@ package com.hbm.tileentity.machine;
 
 import com.hbm.blocks.ModBlocks;
 import com.hbm.blocks.machine.ReactorResearch;
+import com.hbm.handler.CompatHandler;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.container.ContainerReactorControl;
 import com.hbm.inventory.gui.GUIReactorControl;
@@ -15,6 +16,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiScreen;
@@ -28,8 +30,11 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityReactorControl extends TileEntityMachineBase implements IControlReceiver, IGUIProvider, SimpleComponent {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityReactorControl extends TileEntityMachineBase implements IControlReceiver, IGUIProvider, SimpleComponent, ManagedPeripheral {
 
 	public TileEntityReactorControl() {
 		super(1);
@@ -255,41 +260,54 @@ public class TileEntityReactorControl extends TileEntityMachineBase implements I
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "reactor_control";
+		return CompatHandler.Compats.RESEARCH_CONTROL.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] isLinked(Context context, Arguments args) {
-		return new Object[] {isLinked};
+	public String[] methods() {
+		return new String[] {
+				"isLinked",
+				"getReactor",
+				"setParams",
+				"getParams"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getReactor(Context context, Arguments args) {
-		return new Object[] {getDisplayData()};
+	public static String[] callbacks() {
+		return new String[] {
+				"isLinked",
+				"getReactor",
+				"setParams",
+				"getParams"
+		};
 	}
 
-	@Callback(direct = true, limit = 4)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] setParams(Context context, Arguments args) { //i hate my life
-		int newFunction = args.checkInteger(0);
-		double newMaxHeat = args.checkDouble(1);
-		double newMinHeat = args.checkDouble(2);
-		double newMaxLevel = args.checkDouble(3)/100.0;
-		double newMinLevel = args.checkDouble(4)/100.0;
-		function = RodFunction.values()[MathHelper.clamp_int(newFunction, 0, 2)];
-		heatUpper = MathHelper.clamp_double(newMaxHeat, 0, 9999);
-		heatLower = MathHelper.clamp_double(newMinHeat, 0, 9999);
-		levelUpper = MathHelper.clamp_double(newMaxLevel, 0, 1);
-		levelLower = MathHelper.clamp_double(newMinLevel, 0, 1);
-		return new Object[] {};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getParams(Context context, Arguments args) {
-		return new Object[] {function.ordinal(), heatUpper, heatLower, levelUpper, levelLower};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("isLinked"):
+				return new Object[] {isLinked};
+			case ("getReactor"):
+				return new Object[] {getDisplayData()};
+			case ("setParams"): //I hate my life!
+				int newFunction = args.checkInteger(0);
+				double newMaxHeat = args.checkDouble(1);
+				double newMinHeat = args.checkDouble(2);
+				double newMaxLevel = args.checkDouble(3)/100.0;
+				double newMinLevel = args.checkDouble(4)/100.0;
+				function = RodFunction.values()[MathHelper.clamp_int(newFunction, 0, 2)];
+				heatUpper = MathHelper.clamp_double(newMaxHeat, 0, 9999);
+				heatLower = MathHelper.clamp_double(newMinHeat, 0, 9999);
+				levelUpper = MathHelper.clamp_double(newMaxLevel, 0, 1);
+				levelLower = MathHelper.clamp_double(newMinLevel, 0, 1);
+				return new Object[] {};
+			case ("getParams"):
+				return new Object[] {function.ordinal(), heatUpper, heatLower, levelUpper, levelLower};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override

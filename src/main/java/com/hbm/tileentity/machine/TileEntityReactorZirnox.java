@@ -10,6 +10,7 @@ import com.hbm.config.MobConfig;
 import com.hbm.entity.projectile.EntityZirnoxDebris;
 import com.hbm.entity.projectile.EntityZirnoxDebris.DebrisType;
 import com.hbm.explosion.ExplosionNukeGeneric;
+import com.hbm.handler.CompatHandler;
 import com.hbm.handler.GameruleHandler;
 import com.hbm.handler.MultiblockHandlerXR;
 import com.hbm.interfaces.IControlReceiver;
@@ -41,6 +42,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.ManagedPeripheral;
 import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -52,8 +54,11 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers")})
-public class TileEntityReactorZirnox extends TileEntityMachineBase implements IFluidContainer, IFluidAcceptor, IFluidSource, IControlReceiver, IFluidStandardTransceiver, SimpleComponent, IGUIProvider, IInfoProviderEC {
+@Optional.InterfaceList({
+		@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "OpenComputers"),
+		@Optional.Interface(iface = "li.cil.oc.api.network.ManagedPeripheral", modid = "OpenComputers")
+})
+public class TileEntityReactorZirnox extends TileEntityMachineBase implements IFluidContainer, IFluidAcceptor, IFluidSource, IControlReceiver, IFluidStandardTransceiver, SimpleComponent, ManagedPeripheral, IGUIProvider, IInfoProviderEC {
 
 	public int heat;
 	public static final int maxHeat = 100000;
@@ -549,56 +554,61 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IF
 	// do some opencomputer stuff
 	@Override
 	public String getComponentName() {
-		return "zirnox_reactor";
+		return CompatHandler.Compats.ZIRNOX.name;
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getTemp(Context context, Arguments args) {
-		return new Object[] {heat};
+	public String[] methods() {
+		return new String[] {
+				"getTemp",
+				"getPressure",
+				"getWater",
+				"getSteam",
+				"getCarbonDioxide",
+				"isActive",
+				"getInfo",
+				"setActive"
+		};
 	}
 
-	@Callback(direct = true)
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getPressure(Context context, Arguments args) {
-		return new Object[] {pressure};
+	public static String[] callbacks() {
+		return new String[] {
+				"getTemp",
+				"getPressure",
+				"getWater",
+				"getSteam",
+				"getCarbonDioxide",
+				"isActive",
+				"getInfo",
+				"setActive"
+		};
 	}
 
-	@Callback(direct = true)
+	@Override
 	@Optional.Method(modid = "OpenComputers")
-	public Object[] getWater(Context context, Arguments args) {
-		return new Object[] {water.getFill()};
-	}
-	
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getSteam(Context context, Arguments args) {
-		return new Object[] {steam.getFill()};
-	}	
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getCarbonDioxide(Context context, Arguments args) {
-		return new Object[] {carbonDioxide.getFill()};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] isActive(Context context, Arguments args) {
-		return new Object[] {isOn};
-	}
-
-	@Callback(direct = true)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] getInfo(Context context, Arguments args) {
-		return new Object[] {heat, pressure, water.getFill(), steam.getFill(), carbonDioxide.getFill(), isOn};
-	}
-
-	@Callback(direct = true, limit = 4)
-	@Optional.Method(modid = "OpenComputers")
-	public Object[] setActive(Context context, Arguments args) {
-		isOn = args.checkBoolean(0);
-		return new Object[] {};
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch(method) {
+			case ("getTemp"):
+				return new Object[] {heat};
+			case ("getPressure"):
+				return new Object[] {pressure};
+			case ("getWater"):
+				return new Object[] {water.getFill()};
+			case ("getSteam"):
+				return new Object[] {steam.getFill()};
+			case ("getCarbonDioxide"):
+				return new Object[] {carbonDioxide.getFill()};
+			case ("isActive"):
+				return new Object[] {isOn};
+			case ("getInfo"):
+				return new Object[] {heat, pressure, water.getFill(), steam.getFill(), carbonDioxide.getFill(), isOn};
+			case ("setActive"):
+				isOn = args.checkBoolean(0);
+				return new Object[] {};
+		}
+		throw new NoSuchMethodException();
 	}
 
 	@Override
