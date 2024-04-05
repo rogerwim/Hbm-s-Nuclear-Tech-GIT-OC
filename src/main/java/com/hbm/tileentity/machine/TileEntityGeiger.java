@@ -82,12 +82,9 @@ public class TileEntityGeiger extends TileEntity implements SimpleComponent, Man
 	@Override
 	@Optional.Method(modid = "OpenComputers")
 	public String[] methods() {
-		return new String[] {
-				"getRads"
-		};
+		return callbacks();
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getRads"

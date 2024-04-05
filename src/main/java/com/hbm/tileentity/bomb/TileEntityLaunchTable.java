@@ -664,7 +664,6 @@ public class TileEntityLaunchTable extends TileEntityLoadedBase implements ISide
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getEnergyInfo",

@@ -274,7 +274,6 @@ public class TileEntityReactorControl extends TileEntityMachineBase implements I
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"isLinked",

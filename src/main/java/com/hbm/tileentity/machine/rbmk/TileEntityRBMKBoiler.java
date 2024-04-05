@@ -370,7 +370,6 @@ public class TileEntityRBMKBoiler extends TileEntityRBMKSlottedBase implements I
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getHeat",

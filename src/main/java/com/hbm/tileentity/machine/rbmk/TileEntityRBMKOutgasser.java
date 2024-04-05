@@ -246,7 +246,6 @@ public class TileEntityRBMKOutgasser extends TileEntityRBMKSlottedBase implement
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getGas",

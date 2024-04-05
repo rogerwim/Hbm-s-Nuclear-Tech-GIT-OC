@@ -164,7 +164,6 @@ public class BlockCableGauge extends BlockContainer implements IBlockMultiPass, 
 			};
 		}
 
-		@Optional.Method(modid = "OpenComputers")
 		public static String[] callbacks() {
 			return new String[] {
 					"getTick"

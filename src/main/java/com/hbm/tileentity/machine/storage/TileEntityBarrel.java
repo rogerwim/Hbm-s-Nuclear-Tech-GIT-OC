@@ -414,7 +414,6 @@ public class TileEntityBarrel extends TileEntityMachineBase implements IFluidAcc
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getFluidStored",

@@ -500,7 +500,6 @@ public class TileEntityMachineFluidTank extends TileEntityMachineBase implements
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getFluidStored",

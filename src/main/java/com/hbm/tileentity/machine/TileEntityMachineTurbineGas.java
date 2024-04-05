@@ -583,7 +583,6 @@ public class TileEntityMachineTurbineGas extends TileEntityMachineBase implement
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getFluid",

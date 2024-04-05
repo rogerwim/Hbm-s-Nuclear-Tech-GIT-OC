@@ -20,8 +20,8 @@ import cpw.mods.fml.common.Optional;
 /**
  * General handler for OpenComputers compatibility.
  */
-public class CompatHandler {
 
+public class CompatHandler {
 
     /**
      * Stores the TEs for compat and their classes/names for the connector. When adding new compat, remember to add a new entry here.

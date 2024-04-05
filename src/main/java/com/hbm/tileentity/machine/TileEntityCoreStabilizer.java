@@ -192,7 +192,6 @@ public class TileEntityCoreStabilizer extends TileEntityMachineBase implements I
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getEnergyInfo",

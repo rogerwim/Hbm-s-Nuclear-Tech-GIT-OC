@@ -619,7 +619,6 @@ public class TileEntityMachineRadarNT extends TileEntityMachineBase implements I
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getEntityCount",

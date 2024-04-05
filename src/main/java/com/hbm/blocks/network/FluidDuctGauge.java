@@ -172,7 +172,6 @@ public class FluidDuctGauge extends FluidDuctBase implements IBlockMultiPass, IL
 			};
 		}
 
-		@Optional.Method(modid = "OpenComputers")
 		public static String[] callbacks() {
 			return new String[] {
 					"getTick",

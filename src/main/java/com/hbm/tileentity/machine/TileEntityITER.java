@@ -687,7 +687,6 @@ public class TileEntityITER extends TileEntityMachineBase implements IEnergyUser
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getBlanket",

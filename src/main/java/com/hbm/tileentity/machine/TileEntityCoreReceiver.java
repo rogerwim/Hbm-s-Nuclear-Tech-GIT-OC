@@ -208,7 +208,6 @@ public class TileEntityCoreReceiver extends TileEntityMachineBase implements IEn
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getEnergyInfo",

@@ -2,8 +2,8 @@ package com.hbm.tileentity.machine;
 
 import com.hbm.blocks.BlockDummyable;
 import com.hbm.handler.CompatHandler;
+import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.TileEntityLoadedBase;
-import com.hbm.util.LoggingUtil;
 import cpw.mods.fml.common.Optional;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Context;
@@ -20,13 +20,14 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 
 	boolean connected = false;
 	String connectedEnum;
-	TileEntity connectedTE;
+	ManagedPeripheral Peripheral;
 	int time = 0;
 
 	@Override
+	@Optional.Method(modid = "OpenComputers")
 	public void updateEntity() {
 		if (!worldObj.isRemote) {
-			if (time % 20 == 0) {
+			if (time % 10 == 0) {
 				for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
 					Block b = worldObj.getBlock(xCoord + dir.offsetX, yCoord + dir.offsetY, zCoord + dir.offsetZ);
 					if (b instanceof BlockDummyable || b.hasTileEntity(0)) {
@@ -36,7 +37,7 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 							if (pos != null) {
 								tile = worldObj.getTileEntity(pos[0], pos[1], pos[2]);
 							} else {
-								LoggingUtil.errorWithHighlight("Null position for OC connector when trying to find core block.");
+								MainRegistry.logger.warn("Null value for position of core for block at: " + (xCoord + dir.offsetX) + ", " + (yCoord + dir.offsetY) + ", " + (zCoord + dir.offsetZ));
 								return;
 							}
 						} else {
@@ -50,7 +51,7 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 									valid = true;
 									connected = true;
 									connectedEnum = c.name();
-									connectedTE = tile;
+									Peripheral = (/* bruh */ManagedPeripheral) tile;
 									break;
 								}
 							}
@@ -58,7 +59,8 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 						if(!valid) {
 							connected = false;
 							connectedEnum = null;
-							connectedTE = null;
+							Peripheral = null;
+							MainRegistry.logger.debug("TE disconnected at block: " + (xCoord + dir.offsetX) + ", " + (yCoord + dir.offsetY) + ", " + (zCoord + dir.offsetZ));
 						}
 					}
 				}
@@ -69,11 +71,15 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 	}
 
 	@Override
+	@Optional.Method(modid = "OpenComputers")
 	public String getComponentName() {
+		if(!connected)
+			return "none_connector";
 		return CompatHandler.Compats.valueOf(connectedEnum).name + "_connector";
 	}
 
 	@Override
+	@Optional.Method(modid = "OpenComputers")
 	public String[] methods() {
 		if(connected)
 			return CompatHandler.Compats.valueOf(connectedEnum).Methods;
@@ -82,9 +88,10 @@ public class TileEntityOCConnector extends TileEntityLoadedBase implements Simpl
 	}
 
 	@Override
+	@Optional.Method(modid = "OpenComputers")
 	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
 		if(connected)
-			return new Object[] {true};
+			return Peripheral.invoke(method, context, args);
 		else
 			return null;
 

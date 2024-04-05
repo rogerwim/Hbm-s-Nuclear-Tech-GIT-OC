@@ -543,7 +543,6 @@ public class TileEntityRBMKConsole extends TileEntityMachineBase implements ICon
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getColumnData",

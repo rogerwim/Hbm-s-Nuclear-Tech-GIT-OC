@@ -570,7 +570,6 @@ public class TileEntityPWRController extends TileEntityMachineBase implements IG
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getHeat",

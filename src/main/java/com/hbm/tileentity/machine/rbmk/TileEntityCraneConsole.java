@@ -358,7 +358,6 @@ public class TileEntityCraneConsole extends TileEntity implements INBTPacketRece
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"move",

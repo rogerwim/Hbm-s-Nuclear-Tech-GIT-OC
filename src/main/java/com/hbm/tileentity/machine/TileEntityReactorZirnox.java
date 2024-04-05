@@ -572,7 +572,6 @@ public class TileEntityReactorZirnox extends TileEntityMachineBase implements IF
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getTemp",

@@ -420,7 +420,6 @@ public class TileEntityReactorResearch extends TileEntityMachineBase implements 
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getTemp",

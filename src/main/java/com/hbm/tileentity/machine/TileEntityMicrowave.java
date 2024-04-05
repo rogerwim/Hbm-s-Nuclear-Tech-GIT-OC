@@ -234,7 +234,6 @@ public class TileEntityMicrowave extends TileEntityMachineBase implements IEnerg
 		return new String[] {"test"};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {"test"};
 	}

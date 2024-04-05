@@ -359,7 +359,6 @@ public class TileEntityMachineTurbine extends TileEntityLoadedBase implements IS
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getFluid",

@@ -195,7 +195,6 @@ public class TileEntityRBMKCooler extends TileEntityRBMKBase implements IFluidAc
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getHeat",

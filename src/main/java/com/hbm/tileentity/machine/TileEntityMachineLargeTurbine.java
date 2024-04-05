@@ -364,7 +364,6 @@ public class TileEntityMachineLargeTurbine extends TileEntityMachineBase impleme
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getFluid",

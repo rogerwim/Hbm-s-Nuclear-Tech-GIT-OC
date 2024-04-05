@@ -215,7 +215,6 @@ public class TileEntityCoreInjector extends TileEntityMachineBase implements IFl
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getFuel",

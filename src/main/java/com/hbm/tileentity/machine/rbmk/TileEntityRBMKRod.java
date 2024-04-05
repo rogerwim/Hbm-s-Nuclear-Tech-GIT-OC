@@ -419,7 +419,6 @@ public class TileEntityRBMKRod extends TileEntityRBMKSlottedBase implements IRBM
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getHeat",

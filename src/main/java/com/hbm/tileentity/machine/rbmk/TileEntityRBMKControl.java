@@ -144,7 +144,6 @@ public abstract class TileEntityRBMKControl extends TileEntityRBMKSlottedBase im
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getLevel",

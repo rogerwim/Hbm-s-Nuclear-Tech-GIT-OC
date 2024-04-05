@@ -357,7 +357,6 @@ public class TileEntityChungus extends TileEntityLoadedBase implements IFluidAcc
 		};
 	}
 
-	@Optional.Method(modid = "OpenComputers")
 	public static String[] callbacks() {
 		return new String[] {
 				"getFluid",
