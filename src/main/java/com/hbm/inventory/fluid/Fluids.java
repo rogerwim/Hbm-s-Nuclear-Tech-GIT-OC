@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.google.common.collect.HashBiMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -83,7 +84,7 @@ public class Fluids {
 	public static FluidType SCHRABIDIC;
 	public static FluidType AMAT;
 	public static FluidType ASCHRAB;
-	public static FluidType ACID;
+	public static FluidType PEROXIDE;
 	public static FluidType WATZ;
 	public static FluidType CRYOGEL;
 	public static FluidType HYDROGEN;
@@ -173,6 +174,9 @@ public class Fluids {
 	public static FluidType THORIUM_SALT_HOT;
 	public static FluidType THORIUM_SALT_DEPLETED;
 	public static FluidType FULLERENE;
+	public static FluidType STELLAR_FLUX;
+	
+	public static final HashBiMap<String, FluidType> renameMapping = HashBiMap.create();
 	
 	public static List<FluidType> customFluids = new ArrayList();
 
@@ -264,7 +268,7 @@ public class Fluids {
 		SCHRABIDIC =			new FluidType("SCHRABIDIC",			0x006B6B, 5, 0, 5, EnumSymbol.ACID).addTraits(new FT_VentRadiation(1F), new FT_Corrosive(75), new FT_Poison(true, 2), LIQUID);
 		AMAT =					new FluidType("AMAT",				0x010101, 5, 0, 5, EnumSymbol.ANTIMATTER).addTraits(ANTI, GASEOUS);
 		ASCHRAB =				new FluidType("ASCHRAB",			0xb50000, 5, 0, 5, EnumSymbol.ANTIMATTER).addTraits(ANTI, GASEOUS);
-		ACID =					new FluidType("ACID",				0xfff7aa, 3, 0, 3, EnumSymbol.OXIDIZER).addTraits(new FT_Corrosive(40), LIQUID);
+		PEROXIDE =				new FluidType("PEROXIDE",			0xfff7aa, 3, 0, 3, EnumSymbol.OXIDIZER).addTraits(new FT_Corrosive(40), LIQUID);
 		WATZ =					new FluidType("WATZ",				0x86653E, 4, 0, 3, EnumSymbol.ACID).addTraits(new FT_Corrosive(60), new FT_VentRadiation(0.1F), LIQUID, VISCOUS, new FT_Polluting().release(PollutionType.POISON, POISON_EXTREME));
 		CRYOGEL =				new FluidType("CRYOGEL",			0x32ffff, 2, 0, 0, EnumSymbol.CROYGENIC).setTemp(-170).addTraits(LIQUID, VISCOUS);
 		HYDROGEN =				new FluidType("HYDROGEN",			0x4286f4, 3, 4, 0, EnumSymbol.CROYGENIC).setTemp(-260).addContainers(new CD_Gastank(0x4286f4, 0xffffff)).addTraits(new FT_Flammable(5_000), new FT_Combustible(FuelGrade.HIGH, 10_000), LIQUID, EVAP);
@@ -367,7 +371,8 @@ public class Fluids {
 		CRACKOIL_DS =			new FluidType("CRACKOIL_DS",		0x2A1C11, 2, 1, 0, EnumSymbol.NONE).addContainers(new CD_Canister(0x424242)).addTraits(LIQUID, VISCOUS, P_OIL);
 		HOTCRACKOIL_DS =		new FluidType("HOTCRACKOIL_DS",		0x3A1A28, 2, 3, 0, EnumSymbol.NONE).setTemp(350).addTraits(LIQUID, VISCOUS, P_OIL);
 		NAPHTHA_DS =			new FluidType("NAPHTHA_DS",			0x63614E, 2, 1, 0, EnumSymbol.NONE).addContainers(new CD_Canister(0x5F6D44)).addTraits(LIQUID, VISCOUS, P_FUEL);
-		LIGHTOIL_DS =			new FluidType(138, "LIGHTOIL_DS",	0x63543E, 1, 2, 0, EnumSymbol.NONE).addContainers(new CD_Canister(0xB46B52)).addTraits(LIQUID, P_FUEL);
+		LIGHTOIL_DS =			new FluidType("LIGHTOIL_DS",		0x63543E, 1, 2, 0, EnumSymbol.NONE).addContainers(new CD_Canister(0xB46B52)).addTraits(LIQUID, P_FUEL);
+		STELLAR_FLUX =			new FluidType(139, "STELLAR_FLUX",	0xE300FF, 0, 4, 4, EnumSymbol.ANTIMATTER).addTraits(ANTI, GASEOUS);
 		
 		// ^ ^ ^ ^ ^ ^ ^ ^
 		//ADD NEW FLUIDS HERE
@@ -482,7 +487,7 @@ public class Fluids {
 		metaOrder.add(SEEDSLURRY);
 		metaOrder.add(COLLOID);
 		metaOrder.add(IONGEL);
-		metaOrder.add(ACID);
+		metaOrder.add(PEROXIDE);
 		metaOrder.add(SULFURIC_ACID);
 		metaOrder.add(NITRIC_ACID);
 		metaOrder.add(SOLVENT);
@@ -520,6 +525,8 @@ public class Fluids {
 		//garbage
 		metaOrder.add(XPJUICE);
 		metaOrder.add(ENDERJUICE);
+		//plasma-esque
+		metaOrder.add(STELLAR_FLUX);
 		//plasma
 		metaOrder.add(PLASMA_DT);
 		metaOrder.add(PLASMA_HD);
@@ -534,6 +541,11 @@ public class Fluids {
 		//bug meth
 		metaOrder.add(PHEROMONE);
 		metaOrder.add(PHEROMONE_M);
+		
+		//ANY INTERNAL RENAMING MUST BE REFLECTED HERE - DON'T FORGET TO CHANGE: LANG FILES + TYPE'S STRING ID + NAME OF TANK/GUI TEXTURE FILES!
+		// V
+		
+		renameMapping.put("ACID", PEROXIDE);
 		
 		for(FluidType custom : customFluids) metaOrder.add(custom);
 
@@ -574,19 +586,19 @@ public class Fluids {
 		HOTCRACKOIL.addTraits(new FT_Coolable(CRACKOIL, 1, 1, 10).setEff(CoolingType.HEATEXCHANGER, 1.0D));
 		HOTCRACKOIL_DS.addTraits(new FT_Coolable(CRACKOIL_DS, 1, 1, 10).setEff(CoolingType.HEATEXCHANGER, 1.0D));
 
-		COOLANT.addTraits(new FT_Heatable().setEff(HeatingType.HEATEXCHANGER, 1.0D).setEff(HeatingType.PWR, 1.0D).addStep(300, 1, COOLANT_HOT, 1));
+		COOLANT.addTraits(new FT_Heatable().setEff(HeatingType.HEATEXCHANGER, 1.0D).setEff(HeatingType.PWR, 1.0D).setEff(HeatingType.ICF, 1.0D).addStep(300, 1, COOLANT_HOT, 1));
 		COOLANT_HOT.addTraits(new FT_Coolable(COOLANT, 1, 1, 300).setEff(CoolingType.HEATEXCHANGER, 1.0D));
 		
-		MUG.addTraits(new FT_Heatable().setEff(HeatingType.HEATEXCHANGER, 1.0D).setEff(HeatingType.PWR, 1.0D).addStep(400, 1, MUG_HOT, 1), new FT_PWRModerator(1.15D));
+		MUG.addTraits(new FT_Heatable().setEff(HeatingType.HEATEXCHANGER, 1.0D).setEff(HeatingType.PWR, 1.0D).setEff(HeatingType.ICF, 1.25D).addStep(400, 1, MUG_HOT, 1), new FT_PWRModerator(1.15D));
 		MUG_HOT.addTraits(new FT_Coolable(MUG, 1, 1, 400).setEff(CoolingType.HEATEXCHANGER, 1.0D));
 		
-		BLOOD.addTraits(new FT_Heatable().setEff(HeatingType.HEATEXCHANGER, 1.0D).addStep(500, 1, BLOOD_HOT, 1));
+		BLOOD.addTraits(new FT_Heatable().setEff(HeatingType.HEATEXCHANGER, 1.0D).setEff(HeatingType.ICF, 1.25D).addStep(500, 1, BLOOD_HOT, 1));
 		BLOOD_HOT.addTraits(new FT_Coolable(BLOOD, 1, 1, 500).setEff(CoolingType.HEATEXCHANGER, 1.0D));
 		
 		HEAVYWATER.addTraits(new FT_Heatable().setEff(HeatingType.PWR, 1.0D).addStep(300, 1, HEAVYWATER_HOT, 1), new FT_PWRModerator(1.25D));
 		HEAVYWATER_HOT.addTraits(new FT_Coolable(HEAVYWATER, 1, 1, 300).setEff(CoolingType.HEATEXCHANGER, 1.0D));
 		
-		SODIUM.addTraits(new FT_Heatable().setEff(HeatingType.PWR, 2.5D).addStep(400, 1, SODIUM_HOT, 1));
+		SODIUM.addTraits(new FT_Heatable().setEff(HeatingType.PWR, 2.5D).setEff(HeatingType.ICF, 3D).addStep(400, 1, SODIUM_HOT, 1));
 		SODIUM_HOT.addTraits(new FT_Coolable(SODIUM, 1, 1, 400).setEff(CoolingType.HEATEXCHANGER, 1.0D));
 		
 		THORIUM_SALT.addTraits(new FT_Heatable().setEff(HeatingType.PWR, 1.0D).addStep(400, 1, THORIUM_SALT_HOT, 1), new FT_PWRModerator(2.5D));
@@ -863,6 +875,34 @@ public class Fluids {
 			fluid = Fluids.NONE;
 		
 		return fluid;
+	}
+	
+	/** for old worlds with types saved as name, do not use otherwise */
+	public static FluidType fromNameCompat(String name) {
+		if(renameMapping.containsKey(name)) {
+			FluidType fluid = renameMapping.get(name);
+			
+			if(fluid == null) //null safety never killed nobody
+				fluid = Fluids.NONE;
+			
+			return fluid;
+		}
+		
+		return fromName(name);
+	}
+	
+	/** basically the inverse of the above method */
+	public static String toNameCompat(FluidType type) {
+		if(renameMapping.containsValue(type)) {
+			String name = renameMapping.inverse().get(type);
+			
+			if(name == null) //ditto
+				name = Fluids.NONE.getName();
+			
+			return name;
+		}
+		
+		return type.getName();
 	}
 	
 	public static FluidType[] getAll() {

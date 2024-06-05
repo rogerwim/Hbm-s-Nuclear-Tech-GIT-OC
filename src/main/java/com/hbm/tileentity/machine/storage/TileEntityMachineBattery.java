@@ -173,7 +173,13 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 				priority = ConnectionPriority.LOW;
 			}
 
-			int mode = this.getRelevantMode();
+
+
+
+
+			
+			int mode = this.getRelevantMode(false);
+			
 
 			if(this.node == null || this.node.expired) {
 
@@ -244,8 +250,15 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 		}
 	}
 
-	@Override public long getProviderSpeed() { return this.getMaxPower() / 20; }
-	@Override public long getReceiverSpeed() { return this.getMaxPower() / 20; }
+	@Override public long getProviderSpeed() {
+		int mode = this.getRelevantMode(true);
+		return mode == mode_output || mode == mode_buffer ? this.getMaxPower() / 20 : 0;
+	}
+	
+	@Override public long getReceiverSpeed() {
+		int mode = this.getRelevantMode(true);
+		return mode == mode_input || mode == mode_buffer ? this.getMaxPower() / 20 : 0;
+	}
 
 	@Override
 	public void networkUnpack(NBTTagCompound nbt) {
@@ -263,8 +276,11 @@ public class TileEntityMachineBattery extends TileEntityMachineBase implements I
 		return power;
 	}
 	
-	public short getRelevantMode() {
-		return worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord) ? this.redHigh : this.redLow;
+	private short modeCache = 0;
+	public short getRelevantMode(boolean useCache) {
+		if(useCache) return this.modeCache;
+		this.modeCache = worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord) ? this.redHigh : this.redLow;
+		return this.modeCache;
 	}
 	
 	private long bufferedMax;
